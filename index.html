@@ -54,6 +54,9 @@
         .btn { border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; transition: 0.2s; }
         .btn-primary { background: var(--primary); color: white; }
         .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+        
+        /* UI PREMIUM UPGRADE: Active Feedback */
+        .btn:active { transform: scale(0.97); }
 
         /* Auth Screen */
         #auth-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: var(--bg); z-index: 1000; padding: 20px; display: flex; flex-direction: column; justify-content: center; }
@@ -61,21 +64,35 @@
         
         /* Terms Modal */
         #terms-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; padding: 20px; display: flex; align-items: center; justify-content: center; }
-        .terms-content { background: var(--card-bg); padding: 20px; border-radius: 12px; max-height: 80vh; overflow-y: auto; text-align: center; }
+        .terms-content { background: var(--card-bg); padding: 20px; border-radius: 12px; max-height: 80vh; overflow-y: auto; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
 
         /* App Header */
         header { padding: 15px 20px; background: var(--card-bg); position: sticky; top: 0; z-index: 100; border-bottom: 1px solid var(--border); }
         .user-info h2 { font-size: 18px; }
-        .balance-card { background: linear-gradient(135deg, #2962ff, #0039cb); padding: 20px; margin: 15px; border-radius: 12px; color: white; box-shadow: 0 4px 15px rgba(41, 98, 255, 0.3); }
+        
+        /* UI UPGRADE: Deeper Shadows & Hover */
+        .balance-card { 
+            background: linear-gradient(135deg, #2962ff, #0039cb); 
+            padding: 20px; margin: 15px; border-radius: 12px; color: white; 
+            box-shadow: 0 8px 20px rgba(41, 98, 255, 0.4); 
+            transition: transform 0.2s;
+        }
+        .balance-card:active { transform: scale(0.99); }
 
         /* Settings Panel */
-        #settings-panel { position: absolute; top: 60px; right: 20px; background: var(--card-bg); padding: 10px; border-radius: 8px; border: 1px solid var(--border); width: 200px; display: none; box-shadow: 0 5px 20px rgba(0,0,0,0.5); }
+        #settings-panel { position: absolute; top: 60px; right: 20px; background: var(--card-bg); padding: 10px; border-radius: 8px; border: 1px solid var(--border); width: 200px; display: none; box-shadow: 0 5px 20px rgba(0,0,0,0.5); animation: fadeSlide 0.3s ease; }
         #settings-panel button { text-align: left; background: none; color: var(--text); margin-bottom: 5px; }
+        @keyframes fadeSlide { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
         /* Shares Grid */
         .shares-grid { padding: 0 15px; display: grid; gap: 12px; }
-        .share-card { background: var(--card-bg); padding: 15px; border-radius: 10px; border: 1px solid var(--border); cursor: pointer; transition: 0.2s; }
+        .share-card { 
+            background: var(--card-bg); padding: 15px; border-radius: 10px; border: 1px solid var(--border); cursor: pointer; transition: 0.2s; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
         .share-card:active { transform: scale(0.98); }
+        /* UI UPGRADE: Hover Scale */
+        @media(hover: hover) { .share-card:hover { transform: scale(1.01); } }
         
         /* Wallet Section */
         .wallet-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 15px; }
@@ -97,9 +114,20 @@
         .fade-in { animation: fadeIn 0.3s ease-in; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* NEW PRICE ANIMATIONS */
-        .price-up { color: var(--green); text-shadow: 0 0 15px rgba(0, 200, 83, 0.6); transition: color 0.3s; }
-        .price-down { color: var(--red); text-shadow: 0 0 15px rgba(213, 0, 0, 0.6); transition: color 0.3s; }
+        /* NEW ANIMATIONS: Buy/Sell Pulse */
+        .buy-anim { animation: buyPulse 0.45s ease-out; }
+        @keyframes buyPulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 rgba(0,255,0,0); }
+            50% { transform: scale(1.05); box-shadow: 0 0 20px rgba(0,200,83,0.5); }
+            100% { transform: scale(1); box-shadow: 0 0 0 rgba(0,255,0,0); }
+        }
+
+        .sell-anim { animation: sellPulse 0.45s ease-out; }
+        @keyframes sellPulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 rgba(255,0,0,0); }
+            50% { transform: scale(1.05); box-shadow: 0 0 20px rgba(213,0,0,0.5); }
+            100% { transform: scale(1); box-shadow: 0 0 0 rgba(255,0,0,0); }
+        }
 
     </style>
 </head>
@@ -201,7 +229,7 @@
 
                 <!-- Deposit Form -->
                 <div id="deposit-section" class="hidden" style="padding: 15px;">
-                    <div style="background:var(--card-bg); padding:15px; border-radius:10px; text-align:center;">
+                    <div style="background:var(--card-bg); padding:15px; border-radius:10px; text-align:center; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
                         <img src="qr.png" alt="Scan QR" style="width: 150px; height: 150px; background:white; padding:5px; border-radius:5px;">
                         <p style="font-size:12px; color:var(--text-sec); margin:10px 0;">Coins added in 4-6 hours after approval.</p>
                         
@@ -213,7 +241,7 @@
 
                 <!-- Withdraw Form -->
                 <div id="withdraw-section" class="hidden" style="padding: 15px;">
-                     <div style="background:var(--card-bg); padding:15px; border-radius:10px;">
+                     <div style="background:var(--card-bg); padding:15px; border-radius:10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
                         <input type="text" id="with-upi" class="wallet-input" placeholder="Your UPI ID">
                         <input type="number" id="with-amount" class="wallet-input" placeholder="Amount to Withdraw">
                         <button class="btn btn-primary" style="margin-top:10px;" onclick="submitWithdraw()">Request Withdraw</button>
@@ -237,7 +265,7 @@
             <!-- 4. PROFILE TAB -->
             <section id="tab-profile" class="hidden fade-in">
                 <div style="text-align: center; padding: 30px 0;">
-                    <div style="width: 80px; height: 80px; background: var(--primary); border-radius: 50%; margin: 0 auto; display:flex; align-items:center; justify-content:center; font-size: 30px; color:white;">
+                    <div style="width: 80px; height: 80px; background: var(--primary); border-radius: 50%; margin: 0 auto; display:flex; align-items:center; justify-content:center; font-size: 30px; color:white; box-shadow: 0 5px 15px rgba(41, 98, 255, 0.4);">
                         <i class="fa-solid fa-user"></i>
                     </div>
                     <h2 id="profile-name" style="margin-top: 10px;">User</h2>
@@ -261,18 +289,18 @@
             </section>
         </div>
 
-        <!-- BOTTOM NAV -->
+        <!-- BOTTOM NAV (FIXED: Added 'this' parameter) -->
         <nav class="navbar">
-            <button class="nav-item active" onclick="switchTab('home')">
+            <button class="nav-item active" onclick="switchTab('home', this)">
                 <i class="fa-solid fa-house"></i> Home
             </button>
-            <button class="nav-item" onclick="switchTab('wallet')">
+            <button class="nav-item" onclick="switchTab('wallet', this)">
                 <i class="fa-solid fa-wallet"></i> Wallet
             </button>
-            <button class="nav-item" onclick="switchTab('shares')">
+            <button class="nav-item" onclick="switchTab('shares', this)">
                 <i class="fa-solid fa-chart-line"></i> Shares
             </button>
-            <button class="nav-item" onclick="switchTab('profile')">
+            <button class="nav-item" onclick="switchTab('profile', this)">
                 <i class="fa-solid fa-user"></i> Profile
             </button>
         </nav>
@@ -297,6 +325,7 @@
             <div style="display:flex; gap:10px; align-items:center;">
                 <input type="number" id="trade-qty" class="wallet-input" style="margin:0;" placeholder="Qty" value="1">
             </div>
+            <!-- Added specific IDs/Events for animation triggers are handled in JS -->
             <button class="btn" style="background:var(--green); color:white; grid-column: 1 / -1;" onclick="executeTrade('buy')">BUY NOW</button>
             <button class="btn" style="background:var(--red); color:white; grid-column: 1 / -1;" onclick="executeTrade('sell')">SELL NOW</button>
         </div>
@@ -306,14 +335,14 @@
     <script>
         // 🔥 A. FIREBASE CONFIGURATION (KEPT EXACTLY AS PROVIDED)
         const firebaseConfig = {
-  apiKey: "AIzaSyBsqN79Fzb80pfxbX3N0Oq_LcLt8mfAidc",
-  authDomain: "trder-f0be8.firebaseapp.com",
-  databaseURL: "https://trder-f0be8-default-rtdb.firebaseio.com",
-  projectId: "trder-f0be8",
-  storageBucket: "trder-f0be8.firebasestorage.app",
-  messagingSenderId: "563351880166",
-  appId: "1:563351880166:web:1cabe7d104a4842c871627"
-};
+          apiKey: "AIzaSyBsqN79Fzb80pfxbX3N0Oq_LcLt8mfAidc",
+          authDomain: "trder-f0be8.firebaseapp.com",
+          databaseURL: "https://trder-f0be8-default-rtdb.firebaseio.com",
+          projectId: "trder-f0be8",
+          storageBucket: "trder-f0be8.firebasestorage.app",
+          messagingSenderId: "563351880166",
+          appId: "1:563351880166:web:1cabe7d104a4842c871627"
+        };
 
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
@@ -326,7 +355,22 @@
         let allShares = {};
         let currentChartShare = null;
         let chartInstance = null;
-        let chartSeries = []; // Used for Line Graph Data
+        let chartSeries = []; 
+
+        // 🟢 TELEGRAM NOTIFICATION CONFIG (Add your details here)
+        const TG_BOT_TOKEN = "8293891021:AAEO9i8hWo-C-2TbD_nMdE1_ougLv_YXsuY"; 
+        const TG_CHAT_ID = "7247761514";
+
+        function sendTG(msg) {
+            // Simple fetch to TG API
+            if(TG_BOT_TOKEN !== "YOUR_BOT_TOKEN") {
+                fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ chat_id: TG_CHAT_ID, text: msg })
+                });
+            }
+        }
 
         // 🔥 B. STARTUP & AUTH
         auth.onAuthStateChanged((user) => {
@@ -377,7 +421,6 @@
             if(!name) return Swal.fire('Error', 'Name required', 'error');
 
             auth.createUserWithEmailAndPassword(email, pass).then((cred) => {
-                // Save initial user data
                 db.ref('users/' + cred.user.uid).set({
                     name: name,
                     email: email,
@@ -397,33 +440,26 @@
         function initAppData() {
             const uid = currentUser.uid;
 
-            // 1. Listen to User Data
             db.ref('users/' + uid).on('value', (snapshot) => {
                 userData = snapshot.val() || {};
                 updateUI();
             });
 
-            // 2. Listen to Admin Shares (Market)
             db.ref('admin/shares').on('value', (snapshot) => {
                 allShares = snapshot.val() || {};
                 renderMarket();
-                updateUI(); // To update P/L if prices changed
+                updateUI();
             });
 
-            // 3. Listen to Wallet History
             db.ref('walletRequests/' + uid).on('value', renderHistory);
             db.ref('withdrawRequests/' + uid).on('value', renderHistory);
         }
 
         function updateUI() {
-            // Profile & Header
             document.getElementById('user-name-disp').innerText = userData.name || 'Trader';
             document.getElementById('profile-name').innerText = userData.name;
-            
-            // FIX APPLIED HERE: Show Auth email if Database email is undefined
             document.getElementById('profile-email').innerText = userData.email || currentUser.email;
             
-            // Wallet UI
             const bal = userData.wallet || 0;
             document.getElementById('home-balance').innerText = `₹${bal.toFixed(2)}`;
             document.getElementById('wallet-balance').innerText = `₹${bal.toFixed(2)}`;
@@ -431,7 +467,6 @@
             document.getElementById('prof-deposit').innerText = `₹${userData.totalDeposit || 0}`;
             document.getElementById('prof-withdraw').innerText = `₹${userData.totalWithdraw || 0}`;
 
-            // Render User Portfolio with Logic
             renderPortfolio();
         }
 
@@ -454,11 +489,9 @@
                 const buyPrice = userShares[key].buyPrice;
                 const qty = userShares[key].qty;
                 
-                // Get current market price
                 const currentShare = allShares[shareId];
                 const currentPrice = currentShare ? currentShare.price : buyPrice;
                 
-                // Calculate P/L
                 const currentVal = currentPrice * qty;
                 const investVal = buyPrice * qty;
                 const pl = currentVal - investVal;
@@ -494,7 +527,7 @@
 
             Object.keys(allShares).forEach(id => {
                 const s = allShares[id];
-                if (!s.active) return; // Skip inactive
+                if (!s.active) return;
 
                 const card = document.createElement('div');
                 card.className = 'share-card';
@@ -515,7 +548,7 @@
             });
         }
 
-        // 🔥 UPDATED: LINE CHART + LIVE UPDATES
+        // 🔥 UPDATED: CHART ALWAYS SMOOTH + REMOVED PRICE GLOW
         function openChart(shareId) {
             currentChartShare = shareId;
             const share = allShares[shareId];
@@ -525,15 +558,14 @@
             document.getElementById('chart-price').innerText = `₹${share.price}`;
             document.getElementById('chart-modal').style.display = 'flex';
 
-            // Reset Graph Data (Seed with current price for line illusion)
             chartSeries = [];
             for(let i=0; i<15; i++) {
                 chartSeries.push(share.price);
             }
 
-            // Render ApexChart (Area Type)
             if (chartInstance) chartInstance.destroy();
             
+            // 🚀 UPGRADED CHART OPTIONS
             const options = {
                 series: [{ name: 'Price', data: chartSeries }],
                 chart: { 
@@ -541,10 +573,10 @@
                     height: 350, 
                     background: 'transparent', 
                     toolbar: {show:false},
-                    animations: { enabled: true, easing: 'linear', dynamicAnimation: { speed: 500 } } 
+                    animations: { enabled: true, easing: 'easeinout', dynamicAnimation: { speed: 450 } } 
                 },
-                stroke: { curve: 'smooth', width: 2 },
-                fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.7, opacityTo: 0.1, stops: [0, 90, 100] } },
+                stroke: { curve: 'smooth', width: 3 }, // Force smooth
+                fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.6, opacityTo: 0.1, stops: [0, 90, 100] } },
                 theme: { mode: document.body.classList.contains('light-mode') ? 'light' : 'dark' },
                 xaxis: { labels: { show: false } },
                 yaxis: { show: false },
@@ -554,34 +586,18 @@
             chartInstance = new ApexCharts(document.querySelector("#candle-chart"), options);
             chartInstance.render();
 
-            // LISTEN FOR LIVE UPDATES FROM ADMIN
-            // We listen to the same node, but treat it as a single point update for the line graph
             const priceRef = db.ref(`admin/candleData/${shareId}`);
-            priceRef.off(); // Remove old listeners first
+            priceRef.off();
             priceRef.on('value', snap => {
                 const data = snap.val();
                 if(data) {
-                    const newPrice = data.close; // We use 'close' as the single price point
-                    const priceEl = document.getElementById('chart-price');
-                    const prevPrice = chartSeries[chartSeries.length - 1];
+                    const newPrice = data.close;
+                    document.getElementById('chart-price').innerText = `₹${newPrice.toFixed(2)}`;
 
-                    // Update UI Text
-                    priceEl.innerText = `₹${newPrice.toFixed(2)}`;
+                    // REMOVED: .price-up / .price-down logic here (as requested)
 
-                    // Animate Glow
-                    if(newPrice > prevPrice) {
-                        priceEl.className = 'price-up'; // Green
-                    } else if(newPrice < prevPrice) {
-                        priceEl.className = 'price-down'; // Red
-                    }
-                    // Remove glow after 0.5s
-                    setTimeout(() => {
-                        priceEl.className = '';
-                    }, 500);
-
-                    // Update Graph Array
                     chartSeries.push(newPrice);
-                    if(chartSeries.length > 20) chartSeries.shift(); // Keep last 20 points
+                    if(chartSeries.length > 20) chartSeries.shift();
                     chartInstance.updateSeries([{ data: chartSeries }]);
                 }
             });
@@ -589,10 +605,10 @@
 
         function closeChart() {
             document.getElementById('chart-modal').style.display = 'none';
-            // Stop listening to this specific share
             if(currentChartShare) db.ref(`admin/candleData/${currentChartShare}`).off();
         }
 
+        // 🔥 UPDATED: ADDED BUTTON ANIMATIONS
         function executeTrade(type) {
             const qty = parseInt(document.getElementById('trade-qty').value);
             const share = allShares[currentChartShare];
@@ -602,19 +618,16 @@
             if (qty <= 0) return Swal.fire('Error', 'Invalid Quantity', 'error');
 
             if (type === 'buy') {
-                // 🔥 CHECK: ENOUGH COINS?
                 if (currentWallet < cost) {
                     return Swal.fire('Not Enough Coins', `You need ₹${cost} but have ₹${currentWallet}`, 'warning');
                 }
                 
                 if (qty > share.maxLimit) return Swal.fire('Limit', `Max buy limit is ${share.maxLimit}`, 'warning');
 
-                // Deduct Money
                 db.ref(`users/${currentUser.uid}`).update({
                     wallet: currentWallet - cost
                 });
 
-                // Add Share
                 const newShareRef = db.ref(`users/${currentUser.uid}/shares`).push();
                 newShareRef.set({
                     id: currentChartShare,
@@ -625,20 +638,17 @@
                 });
 
                 Swal.fire('Success', 'Shares Purchased!', 'success');
-                // Don't close chart so they can trade more
                 
-                // FIX APPLIED HERE: Immediate Green glow on Buy
-                const priceEl = document.getElementById('chart-price');
-                priceEl.classList.add('price-up');
-                setTimeout(() => priceEl.classList.remove('price-up'), 500);
+                // 🚀 ADDED: BUY ANIMATION
+                const buyBtn = document.querySelector('.trade-controls button[onclick*="buy"]');
+                buyBtn.classList.add('buy-anim');
+                setTimeout(() => buyBtn.classList.remove('buy-anim'), 450);
             } 
             else if (type === 'sell') {
-                // Find user shares
                 let userHasRef = null;
                 let userHasQty = 0;
                 let userShares = userData.shares || {};
 
-                // Sell logic
                 Object.keys(userShares).forEach(k => {
                     if(userShares[k].id === currentChartShare) {
                         userHasRef = k;
@@ -649,13 +659,11 @@
                 if (!userHasRef) return Swal.fire('Error', 'You do not own this share', 'error');
                 if (qty > userHasQty) return Swal.fire('Error', 'Not enough shares', 'error');
 
-                // Add Money (Current Price)
                 const sellValue = share.price * qty;
                 db.ref(`users/${currentUser.uid}`).update({
                     wallet: currentWallet + sellValue
                 });
 
-                // Remove Share (or decrease qty)
                 if (qty === userHasQty) {
                     db.ref(`users/${currentUser.uid}/shares/${userHasRef}`).remove();
                 } else {
@@ -666,14 +674,14 @@
 
                 Swal.fire('Success', `Sold for ₹${sellValue}`, 'success');
                 
-                // FIX APPLIED HERE: Immediate Red glow on Sell
-                const priceEl = document.getElementById('chart-price');
-                priceEl.classList.add('price-down');
-                setTimeout(() => priceEl.classList.remove('price-down'), 500);
+                // 🚀 ADDED: SELL ANIMATION
+                const sellBtn = document.querySelector('.trade-controls button[onclick*="sell"]');
+                sellBtn.classList.add('sell-anim');
+                setTimeout(() => sellBtn.classList.remove('sell-anim'), 450);
             }
         }
 
-        // 🔥 F. WALLET LOGIC
+        // 🔥 F. WALLET LOGIC + TELEGRAM
         function showDeposit() {
             document.getElementById('deposit-section').classList.remove('hidden');
             document.getElementById('withdraw-section').classList.add('hidden');
@@ -699,7 +707,9 @@
                 userEmail: currentUser.email
             });
 
-            // Open WhatsApp
+            // 🚀 TG NOTIFICATION
+            sendTG(`📥 DEPOSIT REQUEST\nUser: ${currentUser.email}\nAmount: ₹${amount}\nPhone/UTR: ${utr}\nTime: ${new Date().toLocaleString()}`);
+
             const msg = `Deposit Request: %0AEmail: ${currentUser.email} %0AAmount: ${amount} %0ATransaction: ${utr}`;
             window.open(`https://wa.me/919891504624?text=${msg}`, '_blank');
 
@@ -724,17 +734,17 @@
                 userEmail: currentUser.email
             });
 
+            // 🚀 TG NOTIFICATION
+            sendTG(`📤 WITHDRAW REQUEST\nUser: ${currentUser.email}\nAmount: ₹${amount}\nUPI: ${upi}\nTime: ${new Date().toLocaleString()}`);
+
             Swal.fire('Success', 'Withdrawal requested', 'success');
         }
 
         function renderHistory(snapshot) {
-            // Simplified history render
             const histDiv = document.getElementById('wallet-history');
             const data = snapshot.val();
             if(!data) return;
             
-            // Just append recent ones (logic simplified for single file)
-            // In real app, merge deposit & withdraw arrays
             histDiv.innerHTML = '';
             Object.values(data).reverse().forEach(item => {
                 const color = item.status === 'approved' ? 'green' : (item.status === 'rejected' ? 'red' : 'orange');
@@ -747,13 +757,17 @@
             });
         }
 
-        // 🔥 G. NAVIGATION & UI
-        function switchTab(tab) {
+        // 🔥 G. NAVIGATION FIX & UI (SAFE MODE)
+        // ✅ NEW: Explicit SwitchTab function (Fixes Mobile Buttons)
+        function switchTab(tab, btn) {
+            // Hide all sections
             document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+            // Show target
             document.getElementById(`tab-${tab}`).classList.remove('hidden');
             
+            // Handle buttons
             document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-            event.currentTarget.classList.add('active');
+            if(btn) btn.classList.add('active');
         }
 
         function toggleSettings() {
