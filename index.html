@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Trade Pro - User</title>
+    <title>Trade Pro - Premium</title>
     
-    <!-- Fonts & Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Fonts: Space Grotesk (Tech/Crypto) & Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons: FontAwesome 6 Pro Style -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Charts Library -->
+    <!-- Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-    
-    <!-- SweetAlert2 (Professional Popups) -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <!-- Firebase SDKs -->
@@ -22,113 +22,316 @@
 
     <style>
         :root {
-            --primary: #2962ff;
-            --bg: #0a0e17;
-            --card-bg: #151a25;
-            --text: #ffffff;
-            --text-sec: #8890a5;
-            --green: #00c853;
-            --red: #d50000;
-            --border: #242b3d;
+            /* --- DARK THEME (DEFAULTS) --- */
+            --bg-body: #000000;
+            --glass-panel: rgba(20, 20, 20, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            
+            /* NEON ACCENTS */
+            --neon-blue: #2962ff;
+            --neon-cyan: #00e5ff;
+            --neon-purple: #7c4dff;
+            --neon-green: #00e676;
+            --neon-red: #ff1744;
+            
+            /* GRADIENTS */
+            --grad-primary: linear-gradient(135deg, #2962ff 0%, #00e5ff 100%);
+            --grad-success: linear-gradient(135deg, #00c853 0%, #69f0ae 100%);
+            --grad-danger: linear-gradient(135deg, #d50000 0%, #ff5252 100%);
+            --grad-gold: linear-gradient(135deg, #ff6f00 0%, #ffca28 100%);
+            
+            /* TEXT */
+            --text-main: #ffffff;
+            --text-muted: #888888;
+            
+            /* GLOWS */
+            --glow-blue: 0 0 20px rgba(41, 98, 255, 0.4);
+            --glow-green: 0 0 20px rgba(0, 230, 118, 0.3);
+            --glow-red: 0 0 20px rgba(255, 23, 68, 0.3);
+
+            /* LAYOUT & BUTTONS */
+            --btn-radius: 18px;
+            --btn-spacing: 16px;
+            --card-padding: 20px;
+            --shadow-soft: 0 8px 32px rgba(0, 0, 0, 0.2);
         }
 
-        /* Light Mode Variables */
+        /* --- ⚪ PREMIUM LIGHT MODE OVERRIDES ⚪ --- */
         body.light-mode {
-            --bg: #f4f6f8;
-            --card-bg: #ffffff;
-            --text: #1a1a1a;
-            --text-sec: #666;
-            --border: #ddd;
+            --bg-body: #f4f6f8; /* Very soft grey-white for depth */
+            --glass-panel: #ffffff; /* Pure White Cards */
+            --glass-border: #eef0f2; /* Almost invisible border */
+            
+            /* Solid Colors for Light Mode */
+            --neon-blue: #0052ff;
+            --neon-cyan: #007aff;
+            --neon-green: #00b36b;
+            --neon-red: #e60023;
+            
+            /* Softer Gradients */
+            --grad-primary: linear-gradient(135deg, #0052ff 0%, #007aff 100%);
+            --grad-success: linear-gradient(135deg, #00b36b 0%, #00d68f 100%);
+            --grad-danger: linear-gradient(135deg, #e60023 0%, #ff4d4d 100%);
+            
+            /* High Contrast Text */
+            --text-main: #111111; /* Sharp Black */
+            --text-muted: #666666;
+            
+            /* Shadows (Apple Style) */
+            --glow-blue: 0 8px 20px rgba(0, 82, 255, 0.25);
+            --glow-green: 0 8px 20px rgba(0, 179, 107, 0.25);
+            --glow-red: 0 8px 20px rgba(230, 0, 35, 0.25);
+            --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.05); /* Soft drop shadow */
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; -webkit-tap-highlight-color: transparent; }
         
-        body { background-color: var(--bg); color: var(--text); overflow-x: hidden; transition: 0.3s; padding-bottom: 70px; }
+        body { 
+            background-color: var(--bg-body); 
+            color: var(--text-main); 
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden; 
+            padding-bottom: 90px;
+            /* Mesh Gradient only for Dark Mode */
+            background-image: radial-gradient(circle at 10% 20%, rgba(41, 98, 255, 0.08) 0%, transparent 40%),
+                              radial-gradient(circle at 90% 80%, rgba(124, 77, 255, 0.08) 0%, transparent 40%);
+            background-attachment: fixed;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
         
-        /* Utils */
+        body.light-mode { background-image: none; }
+
+        /* TYPOGRAPHY */
+        h1, h2, h3 { font-family: 'Space Grotesk', sans-serif; font-weight: 700; letter-spacing: -0.5px; }
+        small { font-size: 12px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-muted); }
+
+        /* UTILS */
         .hidden { display: none !important; }
         .flex { display: flex; align-items: center; }
-        .flex-between { justify-content: space-between; }
-        .green { color: var(--green); }
-        .red { color: var(--red); }
-        .btn { border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; transition: 0.2s; }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+        .flex-between { display: flex; justify-content: space-between; align-items: center; }
         
-        /* UI PREMIUM UPGRADE: Active Feedback */
+        /* Dynamic Colors */
+        .green { color: var(--neon-green) !important; text-shadow: none; }
+        .red { color: var(--neon-red) !important; text-shadow: none; }
+        
+        /* CARDS */
+        .glass-card, .share-card {
+            background: var(--glass-panel);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            box-shadow: var(--shadow-soft);
+            padding: var(--card-padding);
+        }
+        
+        /* Light Mode Specific: Remove blur for cleaner look */
+        body.light-mode .glass-card, 
+        body.light-mode .share-card {
+            backdrop-filter: none;
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+
+        /* --- BUTTONS (UNIFIED) --- */
+        .btn { 
+            border: none; 
+            padding: 16px 20px;
+            border-radius: var(--btn-radius); 
+            font-weight: 600; cursor: pointer; width: 100%; 
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+            font-family: 'Space Grotesk', sans-serif;
+            position: relative; overflow: hidden;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            margin-bottom: var(--btn-spacing);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            font-size: 15px;
+        }
+        
         .btn:active { transform: scale(0.97); }
-
-        /* Auth Screen */
-        #auth-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: var(--bg); z-index: 1000; padding: 20px; display: flex; flex-direction: column; justify-content: center; }
-        .auth-box input { width: 100%; padding: 14px; margin-bottom: 12px; background: var(--card-bg); border: 1px solid var(--border); color: var(--text); border-radius: 8px; outline: none; }
         
-        /* Terms Modal */
-        #terms-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; padding: 20px; display: flex; align-items: center; justify-content: center; }
-        .terms-content { background: var(--card-bg); padding: 20px; border-radius: 12px; max-height: 80vh; overflow-y: auto; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-
-        /* App Header */
-        header { padding: 15px 20px; background: var(--card-bg); position: sticky; top: 0; z-index: 100; border-bottom: 1px solid var(--border); }
-        .user-info h2 { font-size: 18px; }
+        .btn-primary { 
+            background: var(--grad-primary); 
+            color: white; 
+            box-shadow: var(--glow-blue);
+        }
         
-        /* UI UPGRADE: Deeper Shadows & Hover */
+        .btn-outline { 
+            background: transparent; 
+            border: 1px solid var(--glass-border); 
+            color: var(--text-main); 
+        }
+        body.light-mode .btn-outline {
+            border-color: #d1d1d1;
+            color: #1a1a1a;
+        }
+
+        /* INPUTS */
+        input {
+            width: 100%; padding: 16px; margin-bottom: 12px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px; color: var(--text-main);
+            transition: 0.3s; font-size: 15px;
+        }
+        body.light-mode input {
+            background: #ffffff;
+            border: 2px solid #eef0f2;
+            color: #111;
+        }
+        input:focus { 
+            border-color: var(--neon-blue); 
+            background: rgba(41, 98, 255, 0.05);
+            box-shadow: 0 0 0 2px rgba(41, 98, 255, 0.2);
+        }
+
+        /* --- AUTH SCREEN --- */
+        #auth-screen { 
+            position: fixed; inset: 0; z-index: 1000; 
+            background: var(--bg-body); 
+            display: flex; flex-direction: column; justify-content: center; padding: 25px;
+        }
+        body:not(.light-mode) #auth-screen::before {
+            content: ''; position: absolute; top: -10%; left: -10%; width: 300px; height: 300px;
+            background: var(--neon-purple); filter: blur(100px); opacity: 0.2; border-radius: 50%;
+        }
+        
+        .auth-box { 
+            position: relative; z-index: 2; 
+            background: var(--glass-panel); border: 1px solid var(--glass-border);
+            padding: 30px; border-radius: 24px; backdrop-filter: blur(20px);
+            box-shadow: var(--shadow-soft);
+        }
+
+        /* --- APP HEADER --- */
+        header { 
+            padding: 15px 20px; 
+            background: var(--glass-panel); 
+            backdrop-filter: blur(12px);
+            position: sticky; top: 0; z-index: 100; 
+            border-bottom: 1px solid var(--glass-border);
+        }
+        body.light-mode header { background: rgba(255,255,255,0.95); border-bottom: 1px solid #eee; }
+
+        .user-avatar-small {
+            width: 35px; height: 35px; background: linear-gradient(to right, #2962ff, #7c4dff);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; color: white;
+        }
+
+        /* --- BALANCE CARD --- */
         .balance-card { 
-            background: linear-gradient(135deg, #2962ff, #0039cb); 
-            padding: 20px; margin: 15px; border-radius: 12px; color: white; 
-            box-shadow: 0 8px 20px rgba(41, 98, 255, 0.4); 
-            transition: transform 0.2s;
+            background: linear-gradient(120deg, #1a1a1a 0%, #000 100%);
+            position: relative; overflow: hidden;
+            padding: 25px; margin: 20px 15px; border-radius: 24px; color: white; 
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
         }
-        .balance-card:active { transform: scale(0.99); }
+        /* Light Mode Balance Card */
+        body.light-mode .balance-card {
+            background: linear-gradient(135deg, #0052ff 0%, #0044cc 100%);
+            box-shadow: 0 10px 30px rgba(0, 82, 255, 0.3);
+            border: none;
+            color: white !important;
+        }
+        body.light-mode .balance-card * { color: white !important; }
 
-        /* Settings Panel */
-        #settings-panel { position: absolute; top: 60px; right: 20px; background: var(--card-bg); padding: 10px; border-radius: 8px; border: 1px solid var(--border); width: 200px; display: none; box-shadow: 0 5px 20px rgba(0,0,0,0.5); animation: fadeSlide 0.3s ease; }
-        #settings-panel button { text-align: left; background: none; color: var(--text); margin-bottom: 5px; }
-        @keyframes fadeSlide { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* Shares Grid */
+        /* --- LIST ITEMS --- */
         .shares-grid { padding: 0 15px; display: grid; gap: 12px; }
-        .share-card { 
-            background: var(--card-bg); padding: 15px; border-radius: 10px; border: 1px solid var(--border); cursor: pointer; transition: 0.2s; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        .share-card:hover { transform: translateY(-2px); transition: transform 0.2s; }
+        .share-card b { font-size: 15px; letter-spacing: 0.3px; }
+
+        /* --- SETTINGS MENU --- */
+        #settings-panel { 
+            position: absolute; top: 60px; right: 20px; 
+            background: var(--glass-panel); border: 1px solid var(--glass-border);
+            padding: 10px; border-radius: 16px; width: 220px; display: none; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2); z-index: 200;
         }
-        .share-card:active { transform: scale(0.98); }
-        /* UI UPGRADE: Hover Scale */
-        @media(hover: hover) { .share-card:hover { transform: scale(1.01); } }
+        body.light-mode #settings-panel { background: #fff; border: 1px solid #eee; }
         
-        /* Wallet Section */
-        .wallet-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 15px; }
-        .wallet-input { width: 100%; padding: 12px; background: var(--card-bg); border: 1px solid var(--border); color: var(--text); border-radius: 8px; margin-top: 10px; }
-        
-        /* Bottom Nav */
-        .navbar { position: fixed; bottom: 0; width: 100%; background: var(--card-bg); display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid var(--border); z-index: 500; }
-        .nav-item { color: var(--text-sec); font-size: 10px; text-align: center; background: none; border: none; cursor: pointer; }
-        .nav-item i { font-size: 20px; margin-bottom: 4px; display: block; }
-        .nav-item.active { color: var(--primary); }
-
-        /* Chart Modal */
-        #chart-modal { position: fixed; inset: 0; background: var(--bg); z-index: 1500; display: none; flex-direction: column; }
-        .chart-header { padding: 15px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        #candle-chart { flex: 1; margin-top: 20px; }
-        .trade-controls { padding: 15px; background: var(--card-bg); display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        
-        /* Animation */
-        .fade-in { animation: fadeIn 0.3s ease-in; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* NEW ANIMATIONS: Buy/Sell Pulse */
-        .buy-anim { animation: buyPulse 0.45s ease-out; }
-        @keyframes buyPulse {
-            0% { transform: scale(1); box-shadow: 0 0 0 rgba(0,255,0,0); }
-            50% { transform: scale(1.05); box-shadow: 0 0 20px rgba(0,200,83,0.5); }
-            100% { transform: scale(1); box-shadow: 0 0 0 rgba(0,255,0,0); }
+        #settings-panel button { 
+            text-align: left; background: none; color: var(--text-main); 
+            padding: 12px; border-radius: 10px; margin-bottom: 2px;
+            font-weight: 500;
         }
+        #settings-panel button:hover { background: rgba(125,125,125,0.1); }
+        #settings-panel button i { width: 25px; color: var(--neon-cyan); }
+        body.light-mode #settings-panel button i { color: var(--neon-blue); }
 
-        .sell-anim { animation: sellPulse 0.45s ease-out; }
-        @keyframes sellPulse {
-            0% { transform: scale(1); box-shadow: 0 0 0 rgba(255,0,0,0); }
-            50% { transform: scale(1.05); box-shadow: 0 0 20px rgba(213,0,0,0.5); }
-            100% { transform: scale(1); box-shadow: 0 0 0 rgba(255,0,0,0); }
+        /* --- BOTTOM NAV --- */
+        .navbar { 
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 400px;
+            background: rgba(20, 20, 20, 0.9); 
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            display: flex; justify-content: space-around; padding: 12px; 
+            border-radius: 50px; border: 1px solid rgba(255,255,255,0.1);
+            z-index: 500; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        body.light-mode .navbar {
+            background: #ffffff;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
 
+        .nav-item { 
+            color: #888; font-size: 10px; background: none; border: none; cursor: pointer; 
+            transition: 0.3s; position: relative; width: 50px;
+        }
+        .nav-item i { font-size: 20px; margin-bottom: 4px; display: block; transition: 0.3s; }
+        
+        .nav-item.active { color: white; }
+        body.light-mode .nav-item.active { color: var(--neon-blue); }
+        
+        .nav-item.active i { color: var(--neon-cyan); transform: translateY(-3px); }
+        body.light-mode .nav-item.active i { color: var(--neon-blue); }
+
+        /* --- CHART MODAL --- */
+        #chart-modal { 
+            position: fixed; inset: 0; background: var(--bg-body); z-index: 1500; 
+            display: none; flex-direction: column; 
+        }
+        .chart-header { 
+            padding: 20px; display: flex; justify-content: space-between; align-items: center; 
+            background: var(--bg-body); border-bottom: 1px solid var(--glass-border);
+        }
+        .trade-controls { 
+            padding: 20px; background: var(--glass-panel); border-top: 1px solid var(--glass-border);
+            display: grid; grid-template-columns: 1fr 1fr; gap: 15px; 
+            border-radius: 25px 25px 0 0;
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.1);
+        }
+        /* Fix spacing inside grid */
+        .trade-controls .btn { margin-bottom: 0; }
+
+        /* --- ANIMATIONS --- */
+        .fade-in { animation: fadeIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        .buy-anim { animation: pulseGreen 0.5s ease-out; }
+        @keyframes pulseGreen {
+            0% { box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.7); transform: scale(0.98); }
+            100% { box-shadow: 0 0 0 20px rgba(0, 230, 118, 0); transform: scale(1); }
+        }
+        .sell-anim { animation: pulseRed 0.5s ease-out; }
+        @keyframes pulseRed {
+            0% { box-shadow: 0 0 0 0 rgba(255, 23, 68, 0.7); transform: scale(0.98); }
+            100% { box-shadow: 0 0 0 20px rgba(255, 23, 68, 0); transform: scale(1); }
+        }
+
+        /* Terms Modal */
+        #terms-modal { background: rgba(0,0,0,0.95); backdrop-filter: blur(5px); }
+        .terms-content { 
+            background: var(--glass-panel); border: 1px solid var(--neon-blue);
+            padding: 25px; border-radius: 20px; max-width: 90%; width: 350px; 
+            text-align: center;
+        }
+
+        /* QR Code Container */
+        .qr-container {
+            background: white; padding: 10px; border-radius: 12px; display: inline-block;
+            box-shadow: 0 0 20px rgba(0,0,0,0.05); margin-bottom: 15px;
+        }
+        
     </style>
 </head>
 <body>
@@ -136,24 +339,35 @@
     <!-- ================= AUTH SECTION ================= -->
     <div id="auth-screen">
         <div class="auth-box fade-in">
-            <h1 style="color:var(--primary); margin-bottom: 20px; text-align: center;">Trade Pro</h1>
+            <!-- Logo / Branding -->
+            <div style="text-align: center; margin-bottom: 25px;">
+                <div style="width: 50px; height: 50px; margin: 0 auto 15px; background: var(--grad-primary); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: var(--glow-blue);">
+                    <i class="fa-solid fa-layer-group" style="font-size: 24px; color: white;"></i>
+                </div>
+                <h1 style="font-size: 24px;">Trade Pro</h1>
+                <p style="color:var(--text-muted); font-size: 14px;">Next Gen Trading Platform</p>
+            </div>
             
             <div id="login-form">
-                <input type="email" id="login-email" placeholder="Email">
-                <input type="password" id="login-pass" placeholder="Password">
-                <button class="btn btn-primary" onclick="login()">Login</button>
-                <p style="margin-top:15px; text-align:center; color:var(--text-sec);">
-                    New here? <span style="color:var(--primary); cursor:pointer;" onclick="toggleAuth('register')">Register</span>
+                <input type="email" id="login-email" placeholder="Email Address">
+                <input type="password" id="login-pass" placeholder="Enter Password">
+                <button class="btn btn-primary" onclick="login()">
+                    Log In <i class="fa-solid fa-arrow-right"></i>
+                </button>
+                <p style="margin-top:20px; text-align:center; color:var(--text-muted); font-size: 13px;">
+                    Don't have an account? <span style="color:var(--neon-cyan); cursor:pointer; font-weight:600;" onclick="toggleAuth('register')">Register</span>
                 </p>
             </div>
 
             <div id="register-form" class="hidden">
                 <input type="text" id="reg-name" placeholder="Full Name">
-                <input type="email" id="reg-email" placeholder="Email">
-                <input type="password" id="reg-pass" placeholder="Password">
-                <button class="btn btn-primary" onclick="register()">Create Account</button>
-                <p style="margin-top:15px; text-align:center; color:var(--text-sec);">
-                    Have account? <span style="color:var(--primary); cursor:pointer;" onclick="toggleAuth('login')">Login</span>
+                <input type="email" id="reg-email" placeholder="Email Address">
+                <input type="password" id="reg-pass" placeholder="Create Password">
+                <button class="btn btn-primary" onclick="register()">
+                    Get Started <i class="fa-solid fa-rocket"></i>
+                </button>
+                <p style="margin-top:20px; text-align:center; color:var(--text-muted); font-size: 13px;">
+                    Already a member? <span style="color:var(--neon-cyan); cursor:pointer; font-weight:600;" onclick="toggleAuth('login')">Log In</span>
                 </p>
             </div>
         </div>
@@ -162,14 +376,15 @@
     <!-- ================= TERMS MODAL ================= -->
     <div id="terms-modal" class="hidden">
         <div class="terms-content fade-in">
-            <h3>Terms & Conditions</h3>
-            <p style="color:var(--text-sec); margin: 15px 0; font-size: 14px; text-align: left;">
-                1. Trading involves financial risk.<br>
-                2. Market data is simulated for this platform.<br>
-                3. Admin decisions on disputes are final.<br>
-                4. Do not share your password with anyone.
+            <i class="fa-solid fa-shield-halved" style="font-size: 40px; color: var(--neon-blue); margin-bottom: 15px;"></i>
+            <h3>Risk Warning</h3>
+            <p style="color:var(--text-muted); margin: 15px 0; font-size: 13px; line-height: 1.6; text-align: left;">
+                <span style="color: var(--text-main);">•</span> Trading involves high financial risk.<br>
+                <span style="color: var(--text-main);">•</span> Market data is simulated for training.<br>
+                <span style="color: var(--text-main);">•</span> Admin decisions are final.<br>
+                <span style="color: var(--text-main);">•</span> Protect your credentials.
             </p>
-            <button class="btn btn-primary" onclick="acceptTerms()">Accept & Continue</button>
+            <button class="btn btn-primary" onclick="acceptTerms()">I Understand & Accept</button>
         </div>
     </div>
 
@@ -178,85 +393,132 @@
         
         <!-- HEADER -->
         <header class="flex flex-between">
-            <div class="user-info">
-                <small style="color:var(--text-sec);">Welcome,</small>
-                <h2 id="user-name-disp">Trader</h2>
+            <div class="user-info flex" style="gap: 10px;">
+                <div class="user-avatar-small">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+                <div>
+                    <small>Welcome Back</small>
+                    <h2 id="user-name-disp" style="font-size: 16px;">Trader</h2>
+                </div>
             </div>
             <div style="position:relative;">
-                <i class="fa-solid fa-gear" style="font-size: 20px; cursor: pointer;" onclick="toggleSettings()"></i>
+                <button style="background:transparent; border:none; color:var(--text-main); font-size:18px;" onclick="toggleSettings()">
+                    <i class="fa-solid fa-bars-staggered"></i>
+                </button>
                 
                 <!-- DROPDOWN SETTINGS -->
                 <div id="settings-panel">
-                    <button class="btn" onclick="toggleTheme()"><i class="fa-solid fa-moon"></i> Toggle Theme</button>
-                    <button class="btn" onclick="openLink('https://t.me/tradeproleaks')"><i class="fa-brands fa-telegram"></i> Telegram</button>
-                    <button class="btn" onclick="openLink('https://wa.me/919891504624')"><i class="fa-brands fa-whatsapp"></i> Support</button>
-                    <button class="btn" style="color:var(--red);" onclick="logout()"><i class="fa-solid fa-power-off"></i> Logout</button>
+                    <button class="btn" onclick="toggleTheme()"><i class="fa-solid fa-moon"></i> Appearance</button>
+                    <button class="btn" onclick="openLink('https://t.me/tradepro')"><i class="fa-brands fa-telegram"></i> Community</button>
+                    <button class="btn" onclick="openLink('https://wa.me/919891504624')"><i class="fa-brands fa-whatsapp"></i> Help Center</button>
+                    <div style="height:1px; background:var(--glass-border); margin: 5px 0;"></div>
+                    <button class="btn" style="color:var(--neon-red);" onclick="logout()"><i class="fa-solid fa-power-off"></i> Sign Out</button>
                 </div>
             </div>
         </header>
 
         <!-- CONTENT SECTIONS -->
-        <div id="content-area" style="padding-bottom: 20px;">
+        <div id="content-area">
             
             <!-- 1. HOME TAB -->
             <section id="tab-home" class="fade-in">
+                <!-- Premium Balance Card -->
                 <div class="balance-card">
-                    <small>Total Balance</small>
+                    <div class="flex-between">
+                        <small style="opacity:0.8;">Total Net Worth</small>
+                        <i class="fa-brands fa-bitcoin" style="font-size: 20px; opacity: 0.5;"></i>
+                    </div>
                     <h1 id="home-balance">₹0.00</h1>
-                    <div style="margin-top: 10px; font-size: 12px; opacity: 0.8;">
-                        Live P/L: <span id="total-pl">₹0.00</span>
+                    <div class="flex-between" style="margin-top: 15px;">
+                        <div style="font-size: 13px; background: rgba(0,0,0,0.3); padding: 5px 10px; border-radius: 8px;">
+                            P/L: <span id="total-pl">₹0.00</span>
+                        </div>
+                        <i class="fa-solid fa-chart-pie" style="opacity:0.6;"></i>
                     </div>
                 </div>
 
-                <h3 style="padding: 0 15px; margin-bottom: 10px;">My Portfolio</h3>
+                <div class="flex-between" style="padding: 0 15px; margin-bottom: 15px;">
+                    <h3>My Portfolio</h3>
+                    <small class="green" style="cursor: pointer;">View All</small>
+                </div>
+
                 <div id="my-shares-list" class="shares-grid">
                     <!-- User Shares injected here -->
-                    <p style="color:var(--text-sec); text-align:center;">No shares purchased yet.</p>
+                    <div style="padding: 30px; text-align: center; border: 1px dashed var(--glass-border); border-radius: 15px;">
+                        <i class="fa-solid fa-folder-open" style="font-size: 24px; color: var(--text-muted); margin-bottom: 10px;"></i>
+                        <p style="color:var(--text-muted); font-size:13px;">Portfolio is empty</p>
+                    </div>
                 </div>
             </section>
 
             <!-- 2. WALLET TAB -->
             <section id="tab-wallet" class="hidden fade-in">
-                <div class="balance-card">
-                    <small>Available Coins</small>
-                    <h1 id="wallet-balance">₹0.00</h1>
+                <div class="balance-card" style="background: var(--grad-gold);">
+                    <div class="flex-between">
+                        <small style="color:rgba(0,0,0,0.6);">Available Funds</small>
+                        <i class="fa-solid fa-wallet" style="color:rgba(0,0,0,0.5);"></i>
+                    </div>
+                    <h1 id="wallet-balance" style="color:black; text-shadow:none;">₹0.00</h1>
                 </div>
 
                 <div class="wallet-actions">
-                    <button class="btn btn-primary" onclick="showDeposit()">Deposit</button>
-                    <button class="btn btn-outline" onclick="showWithdraw()">Withdraw</button>
+                    <button class="btn" style="background: var(--grad-success); color:black; box-shadow: var(--glow-green);" onclick="showDeposit()">
+                        <i class="fa-solid fa-arrow-down"></i> Deposit
+                    </button>
+                    <button class="btn" style="background: var(--grad-danger); color:white; box-shadow: var(--glow-red);" onclick="showWithdraw()">
+                        <i class="fa-solid fa-arrow-up"></i> Withdraw
+                    </button>
                 </div>
 
                 <!-- Deposit Form -->
                 <div id="deposit-section" class="hidden" style="padding: 15px;">
-                    <div style="background:var(--card-bg); padding:15px; border-radius:10px; text-align:center; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
-                        <img src="qr.png" alt="Scan QR" style="width: 150px; height: 150px; background:white; padding:5px; border-radius:5px;">
-                        <p style="font-size:12px; color:var(--text-sec); margin:10px 0;">Coins added in 4-6 hours after approval.</p>
+                    <div class="glass-card" style="padding:20px; text-align:center;">
+                        <div class="qr-container">
+                            <img src="qr.png" alt="Scan QR" style="width: 140px; height: 140px;">
+                        </div>
+                        <p style="font-size:12px; color:var(--text-muted); margin:10px 0;">Processing time: 4-6 Hours</p>
                         
-                        <input type="number" id="dep-amount" class="wallet-input" placeholder="Amount (₹)">
-                        <input type="text" id="dep-utr" class="wallet-input" placeholder="enter your phone number">
-                        <button class="btn btn-primary" style="margin-top:10px;" onclick="submitDeposit()">Send Request</button>
+                        <input type="number" id="dep-amount" placeholder="Amount (₹)">
+                        <input type="text" id="dep-utr" placeholder="UTR / Phone Number">
+                        <button class="btn btn-primary" style="margin-top:10px;" onclick="submitDeposit()">
+                            Submit Request <i class="fa-solid fa-paper-plane"></i>
+                        </button>
                     </div>
                 </div>
 
                 <!-- Withdraw Form -->
                 <div id="withdraw-section" class="hidden" style="padding: 15px;">
-                     <div style="background:var(--card-bg); padding:15px; border-radius:10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
-                        <input type="text" id="with-upi" class="wallet-input" placeholder="Your UPI ID">
-                        <input type="number" id="with-amount" class="wallet-input" placeholder="Amount to Withdraw">
-                        <button class="btn btn-primary" style="margin-top:10px;" onclick="submitWithdraw()">Request Withdraw</button>
+                     <div class="glass-card" style="padding:20px;">
+                        <input type="text" id="with-upi" placeholder="UPI ID (e.g., user@okhdfcbank)">
+                        <input type="number" id="with-amount" placeholder="Amount to Withdraw">
+                        <button class="btn btn-primary" style="margin-top:10px; background: var(--grad-gold); color: black;" onclick="submitWithdraw()">
+                            Request Payout <i class="fa-solid fa-money-bill-transfer"></i>
+                        </button>
                     </div>
                 </div>
 
                 <div style="padding: 15px;">
-                    <h4>History</h4>
-                    <div id="wallet-history" style="margin-top:10px;"></div>
+                    <h4 style="margin-bottom:10px;">Transaction History</h4>
+                    <div id="wallet-history" style="display:grid; gap:8px;"></div>
                 </div>
             </section>
 
             <!-- 3. SHARES TAB (MARKET) -->
             <section id="tab-shares" class="hidden fade-in">
-                <h3 style="padding: 15px;">Market</h3>
+                <div style="padding: 15px 15px 5px;">
+                    <h2 style="font-size: 22px;">Live Market</h2>
+                    <p style="color:var(--text-muted); font-size:12px;">Real-time trends</p>
+                </div>
+                
+                <!-- Search bar cosmetic -->
+                <div style="padding: 0 15px 15px;">
+                    <div style="background: var(--glass-panel); padding: 10px; border-radius: 10px; border: 1px solid var(--glass-border); display:flex; gap:10px; align-items:center;">
+                        <i class="fa-solid fa-search" style="color: var(--text-muted);"></i>
+                        <span style="color: var(--text-muted); font-size: 14px;">Search assets...</span>
+                    </div>
+                </div>
+
                 <div id="market-list" class="shares-grid">
                     <!-- Admin Shares injected here -->
                 </div>
@@ -264,44 +526,57 @@
 
             <!-- 4. PROFILE TAB -->
             <section id="tab-profile" class="hidden fade-in">
-                <div style="text-align: center; padding: 30px 0;">
-                    <div style="width: 80px; height: 80px; background: var(--primary); border-radius: 50%; margin: 0 auto; display:flex; align-items:center; justify-content:center; font-size: 30px; color:white; box-shadow: 0 5px 15px rgba(41, 98, 255, 0.4);">
-                        <i class="fa-solid fa-user"></i>
+                <div style="text-align: center; padding: 40px 0 20px;">
+                    <div style="width: 90px; height: 90px; background: var(--grad-primary); border-radius: 50%; margin: 0 auto; display:flex; align-items:center; justify-content:center; font-size: 35px; color:white; box-shadow: var(--glow-blue); border: 3px solid rgba(255,255,255,0.2);">
+                        <i class="fa-solid fa-user-astronaut"></i>
                     </div>
-                    <h2 id="profile-name" style="margin-top: 10px;">User</h2>
-                    <p id="profile-email" style="color:var(--text-sec);">user@email.com</p>
+                    <h2 id="profile-name" style="margin-top: 15px; font-size: 22px;">User</h2>
+                    <p id="profile-email" style="color:var(--text-muted); font-size: 13px;">user@email.com</p>
+                    
+                    <div style="display:flex; justify-content:center; gap:10px; margin-top:15px;">
+                        <span style="background:rgba(41, 98, 255, 0.1); padding:5px 10px; border-radius:20px; font-size:10px; color: var(--neon-cyan); border: 1px solid var(--neon-blue);">VERIFIED TRADER</span>
+                    </div>
                 </div>
                 
-                <div style="padding: 15px;">
+                <div style="padding: 15px; display:grid; gap: 12px;">
                     <div class="share-card flex-between">
-                        <span>Wallet Balance</span>
+                        <div class="flex" style="gap:10px;">
+                            <i class="fa-solid fa-wallet" style="color:var(--neon-purple);"></i>
+                            <span>Wallet Balance</span>
+                        </div>
                         <span id="prof-balance" class="green">₹0</span>
                     </div>
-                    <div class="share-card flex-between" style="margin-top:10px;">
-                        <span>Total Deposited</span>
+                    <div class="share-card flex-between">
+                        <div class="flex" style="gap:10px;">
+                            <i class="fa-solid fa-circle-arrow-down" style="color:var(--neon-green);"></i>
+                            <span>Total Deposited</span>
+                        </div>
                         <span id="prof-deposit">₹0</span>
                     </div>
-                    <div class="share-card flex-between" style="margin-top:10px;">
-                        <span>Total Withdrawn</span>
+                    <div class="share-card flex-between">
+                        <div class="flex" style="gap:10px;">
+                            <i class="fa-solid fa-circle-arrow-up" style="color:var(--neon-red);"></i>
+                            <span>Total Withdrawn</span>
+                        </div>
                         <span id="prof-withdraw">₹0</span>
                     </div>
                 </div>
             </section>
         </div>
 
-        <!-- BOTTOM NAV (FIXED: Added 'this' parameter) -->
+        <!-- BOTTOM NAV -->
         <nav class="navbar">
             <button class="nav-item active" onclick="switchTab('home', this)">
-                <i class="fa-solid fa-house"></i> Home
+                <i class="fa-solid fa-house-chimney"></i> Home
             </button>
             <button class="nav-item" onclick="switchTab('wallet', this)">
                 <i class="fa-solid fa-wallet"></i> Wallet
             </button>
             <button class="nav-item" onclick="switchTab('shares', this)">
-                <i class="fa-solid fa-chart-line"></i> Shares
+                <i class="fa-solid fa-chart-line"></i> Market
             </button>
             <button class="nav-item" onclick="switchTab('profile', this)">
-                <i class="fa-solid fa-user"></i> Profile
+                <i class="fa-solid fa-user-gear"></i> Profile
             </button>
         </nav>
     </div>
@@ -309,31 +584,41 @@
     <!-- ================= FULLSCREEN CHART MODAL ================= -->
     <div id="chart-modal">
         <div class="chart-header">
-            <h3 id="chart-title">Share Name</h3>
-            <button class="btn-outline" style="width:auto; padding:5px 10px;" onclick="closeChart()">
+            <div>
+                <small style="color:var(--neon-cyan);">Trading Pair</small>
+                <h3 id="chart-title" style="margin-top: 2px;">Share Name</h3>
+            </div>
+            <button class="btn-outline" style="width:auto; padding:8px 12px; border-radius: 50%;" onclick="closeChart()">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
         
-        <div id="candle-chart"></div> <!-- ApexChart Container -->
+        <div id="candle-chart" style="flex:1; margin-top:10px;"></div>
         
         <div class="trade-controls">
-            <div>
-                <small>Current Price</small>
-                <h2 id="chart-price">₹0</h2>
+            <div style="grid-column: 1 / -1; display:flex; justify-content:space-between; align-items:flex-end; margin-bottom: 10px;">
+                <div>
+                    <small>Current Price</small>
+                    <h1 id="chart-price" style="color:var(--text-main); font-size: 28px;">₹0.00</h1>
+                </div>
+                <div style="text-align:right;">
+                    <small>Quantity</small>
+                    <input type="number" id="trade-qty" style="width:80px; margin:0; text-align:center; padding: 10px;" value="1">
+                </div>
             </div>
-            <div style="display:flex; gap:10px; align-items:center;">
-                <input type="number" id="trade-qty" class="wallet-input" style="margin:0;" placeholder="Qty" value="1">
-            </div>
-            <!-- Added specific IDs/Events for animation triggers are handled in JS -->
-            <button class="btn" style="background:var(--green); color:white; grid-column: 1 / -1;" onclick="executeTrade('buy')">BUY NOW</button>
-            <button class="btn" style="background:var(--red); color:white; grid-column: 1 / -1;" onclick="executeTrade('sell')">SELL NOW</button>
+            
+            <button class="btn" style="background:var(--grad-success); color:black; box-shadow: var(--glow-green);" onclick="executeTrade('buy')">
+                <i class="fa-solid fa-arrow-trend-up"></i> BUY
+            </button>
+            <button class="btn" style="background:var(--grad-danger); color:white; box-shadow: var(--glow-red);" onclick="executeTrade('sell')">
+                <i class="fa-solid fa-arrow-trend-down"></i> SELL
+            </button>
         </div>
     </div>
 
     <!-- JAVASCRIPT LOGIC -->
     <script>
-        // 🔥 A. FIREBASE CONFIGURATION (KEPT EXACTLY AS PROVIDED)
+        // 🔥 A. FIREBASE CONFIGURATION
         const firebaseConfig = {
           apiKey: "AIzaSyBsqN79Fzb80pfxbX3N0Oq_LcLt8mfAidc",
           authDomain: "trder-f0be8.firebaseapp.com",
@@ -355,14 +640,17 @@
         let allShares = {};
         let currentChartShare = null;
         let chartInstance = null;
-        let chartSeries = []; 
+        let chartData = []; 
+        const MAX_CANDLES = 40; 
+        
+        // Ref holder to properly detach listeners
+        let activeChartRef = null;
 
-        // 🟢 TELEGRAM NOTIFICATION CONFIG (Add your details here)
+        // 🟢 TELEGRAM NOTIFICATION CONFIG
         const TG_BOT_TOKEN = "8293891021:AAEO9i8hWo-C-2TbD_nMdE1_ougLv_YXsuY"; 
         const TG_CHAT_ID = "7247761514";
 
         function sendTG(msg) {
-            // Simple fetch to TG API
             if(TG_BOT_TOKEN !== "YOUR_BOT_TOKEN") {
                 fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`, {
                     method: "POST",
@@ -456,14 +744,19 @@
         }
 
         function updateUI() {
-            document.getElementById('user-name-disp').innerText = userData.name || 'Trader';
+            const elName = document.getElementById('user-name-disp');
+            if(elName) elName.innerText = userData.name || 'Trader';
+            
             document.getElementById('profile-name').innerText = userData.name;
             document.getElementById('profile-email').innerText = userData.email || currentUser.email;
             
             const bal = userData.wallet || 0;
-            document.getElementById('home-balance').innerText = `₹${bal.toFixed(2)}`;
-            document.getElementById('wallet-balance').innerText = `₹${bal.toFixed(2)}`;
-            document.getElementById('prof-balance').innerText = `₹${bal.toFixed(2)}`;
+            const els = ['home-balance', 'wallet-balance', 'prof-balance'];
+            els.forEach(id => {
+                const el = document.getElementById(id);
+                if(el) el.innerText = `₹${bal.toFixed(2)}`;
+            });
+
             document.getElementById('prof-deposit').innerText = `₹${userData.totalDeposit || 0}`;
             document.getElementById('prof-withdraw').innerText = `₹${userData.totalWithdraw || 0}`;
 
@@ -473,13 +766,19 @@
         // 🔥 D. PORTFOLIO LOGIC
         function renderPortfolio() {
             const list = document.getElementById('my-shares-list');
+            if(!list) return;
+            
             list.innerHTML = '';
             
             let totalPL = 0;
             const userShares = userData.shares || {};
 
             if (Object.keys(userShares).length === 0) {
-                list.innerHTML = '<p style="color:var(--text-sec); text-align:center;">Empty Portfolio</p>';
+                list.innerHTML = `
+                    <div style="padding: 30px; text-align: center; border: 1px dashed var(--glass-border); border-radius: 15px;">
+                        <i class="fa-solid fa-folder-open" style="font-size: 24px; color: var(--text-muted); margin-bottom: 10px;"></i>
+                        <p style="color:var(--text-muted); font-size:13px;">Portfolio is empty</p>
+                    </div>`;
                 document.getElementById('total-pl').innerText = `₹0.00`;
                 return;
             }
@@ -498,17 +797,25 @@
                 totalPL += pl;
 
                 const colorClass = pl >= 0 ? 'green' : 'red';
+                const plIcon = pl >= 0 ? 'fa-caret-up' : 'fa-caret-down';
 
                 const card = document.createElement('div');
                 card.className = 'share-card';
                 card.onclick = () => openChart(shareId);
                 card.innerHTML = `
                     <div class="flex-between">
-                        <b>${currentShare ? currentShare.name : 'Unknown'}</b>
-                        <span class="${colorClass}">${pl >= 0 ? '+' : ''}₹${pl.toFixed(2)}</span>
+                        <div class="flex" style="gap:10px;">
+                            <div style="background:rgba(41, 98, 255, 0.1); width:35px; height:35px; border-radius:10px; display:flex; align-items:center; justify-content:center;">
+                                <i class="fa-solid fa-bolt" style="color:var(--neon-blue);"></i>
+                            </div>
+                            <b>${currentShare ? currentShare.name : 'Unknown'}</b>
+                        </div>
+                        <span class="${colorClass}" style="font-weight:600;">
+                            ${pl >= 0 ? '+' : ''}₹${pl.toFixed(2)} <i class="fa-solid ${plIcon}"></i>
+                        </span>
                     </div>
-                    <div class="flex-between" style="margin-top:5px; font-size:12px; color:var(--text-sec);">
-                        <span>Qty: ${qty}</span>
+                    <div class="flex-between" style="margin-top:10px; font-size:12px; color:var(--text-muted);">
+                        <span><i class="fa-solid fa-layer-group"></i> Qty: ${qty}</span>
                         <span>LTP: ₹${currentPrice}</span>
                     </div>
                 `;
@@ -523,6 +830,8 @@
         // 🔥 E. MARKET & TRADING LOGIC
         function renderMarket() {
             const list = document.getElementById('market-list');
+            if(!list) return;
+            
             list.innerHTML = '';
 
             Object.keys(allShares).forEach(id => {
@@ -533,22 +842,28 @@
                 card.className = 'share-card';
                 card.innerHTML = `
                     <div class="flex-between">
-                        <b>${s.name}</b>
-                        <b class="green">₹${s.price}</b>
+                        <div>
+                            <b>${s.name}</b>
+                            <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Crypto Asset</div>
+                        </div>
+                        <b class="green" style="font-size:16px;">₹${s.price}</b>
                     </div>
-                    <div class="flex-between" style="margin-top:8px; font-size:12px; color:var(--text-sec);">
-                        <span>Return: ${s.return}%</span>
-                        <span>Max Buy: ${s.maxLimit}</span>
+                    
+                    <div style="height:1px; background:var(--glass-border); margin:10px 0;"></div>
+                    
+                    <div class="flex-between" style="font-size:12px; color:var(--text-muted);">
+                        <span class="green"><i class="fa-solid fa-arrow-trend-up"></i> ${s.return}% Return</span>
+                        <span>Max: ${s.maxLimit}</span>
                     </div>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
-                        <button class="btn btn-primary" style="padding:8px;" onclick="openChart('${id}')">Trade</button>
-                    </div>
+                    <button class="btn btn-primary" style="margin-top:12px; padding:10px; font-size:13px; background:rgba(41, 98, 255, 0.1); border:1px solid var(--neon-blue); color:var(--neon-blue); box-shadow:none;" onclick="openChart('${id}')">
+                        View Chart
+                    </button>
                 `;
                 list.appendChild(card);
             });
         }
 
-        // 🔥 UPDATED: CHART ALWAYS SMOOTH + REMOVED PRICE GLOW
+        // 🔥 CHART LOGIC (FIXED FOR NULL ERRORS)
         function openChart(shareId) {
             currentChartShare = shareId;
             const share = allShares[shareId];
@@ -558,59 +873,128 @@
             document.getElementById('chart-price').innerText = `₹${share.price}`;
             document.getElementById('chart-modal').style.display = 'flex';
 
-            chartSeries = [];
-            for(let i=0; i<15; i++) {
-                chartSeries.push(share.price);
+            chartData = [];
+            let basePrice = share.price;
+            let time = new Date().getTime() - (180 * 1000); 
+            
+            for(let i=0; i<30; i++) {
+                let move = (Math.random() - 0.5) * 2; 
+                let open = basePrice;
+                let close = basePrice + move;
+                let high = Math.max(open, close) + Math.random() * 0.5;
+                let low = Math.min(open, close) - Math.random() * 0.5;
+                
+                chartData.push({
+                    x: time + (i * 6000), 
+                    y: [parseFloat(open.toFixed(2)), parseFloat(high.toFixed(2)), parseFloat(low.toFixed(2)), parseFloat(close.toFixed(2))]
+                });
+                basePrice = close;
             }
 
-            if (chartInstance) chartInstance.destroy();
+            if (chartInstance) {
+                chartInstance.destroy();
+                chartInstance = null;
+            }
             
-            // 🚀 UPGRADED CHART OPTIONS
             const options = {
-                series: [{ name: 'Price', data: chartSeries }],
+                series: [{ data: chartData }],
                 chart: { 
-                    type: 'area', 
+                    type: 'candlestick', 
                     height: 350, 
                     background: 'transparent', 
                     toolbar: {show:false},
-                    animations: { enabled: true, easing: 'easeinout', dynamicAnimation: { speed: 450 } } 
+                    animations: { 
+                        enabled: true, 
+                        easing: 'easeinout', 
+                        speed: 800, 
+                        animateGradually: { enabled: true, delay: 150 },
+                        dynamicAnimation: { enabled: true, speed: 350 } 
+                    } 
                 },
-                stroke: { curve: 'smooth', width: 3 }, // Force smooth
-                fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.6, opacityTo: 0.1, stops: [0, 90, 100] } },
-                theme: { mode: document.body.classList.contains('light-mode') ? 'light' : 'dark' },
-                xaxis: { labels: { show: false } },
-                yaxis: { show: false },
-                grid: { show: false }
+                theme: { mode: 'dark' }, /* Always dark chart for contrast */
+                plotOptions: {
+                    candlestick: {
+                        colors: { upward: '#00e676', downward: '#ff1744' },
+                        wick: { useFillColor: true }
+                    }
+                },
+                xaxis: { 
+                    type: 'datetime', 
+                    labels: { show: false }, 
+                    tooltip: { enabled: false },
+                    axisBorder: { show: false },
+                    axisTicks: { show: false }
+                },
+                yaxis: { 
+                    tooltip: { enabled: true },
+                    opposite: true, 
+                    labels: { 
+                        style: { colors: '#888', fontSize: '10px' },
+                        formatter: (value) => { return value.toFixed(2) }
+                    }
+                },
+                grid: { 
+                    borderColor: '#333', 
+                    strokeDashArray: 3,
+                    yaxis: { lines: { show: true } } 
+                },
+                tooltip: { theme: 'dark' }
             };
 
-            chartInstance = new ApexCharts(document.querySelector("#candle-chart"), options);
-            chartInstance.render();
+            const chartEl = document.querySelector("#candle-chart");
+            if(chartEl) {
+                chartInstance = new ApexCharts(chartEl, options);
+                chartInstance.render();
+            }
 
-            const priceRef = db.ref(`admin/candleData/${shareId}`);
-            priceRef.off();
-            priceRef.on('value', snap => {
+            // Clean up previous listeners if any
+            if(activeChartRef) activeChartRef.off();
+
+            activeChartRef = db.ref(`admin/candleData/${shareId}`);
+            activeChartRef.on('value', snap => {
+                // SAFETY CHECK: Stop if modal is closed or chart destroyed
+                const modal = document.getElementById('chart-modal');
+                if(!chartInstance || !modal || modal.style.display === 'none') return;
+
                 const data = snap.val();
                 if(data) {
-                    const newPrice = data.close;
-                    document.getElementById('chart-price').innerText = `₹${newPrice.toFixed(2)}`;
+                    const currentClose = data.close || share.price; 
+                    const currentOpen = data.open || (chartData.length > 0 ? chartData[chartData.length-1].y[3] : currentClose);
+                    const currentHigh = data.high || Math.max(currentOpen, currentClose);
+                    const currentLow = data.low || Math.min(currentOpen, currentClose);
 
-                    // REMOVED: .price-up / .price-down logic here (as requested)
+                    const priceEl = document.getElementById('chart-price');
+                    if(priceEl) priceEl.innerText = `₹${currentClose.toFixed(2)}`;
+                    
+                    const newCandle = {
+                        x: new Date().getTime(),
+                        y: [parseFloat(currentOpen), parseFloat(currentHigh), parseFloat(currentLow), parseFloat(currentClose)]
+                    };
 
-                    chartSeries.push(newPrice);
-                    if(chartSeries.length > 20) chartSeries.shift();
-                    chartInstance.updateSeries([{ data: chartSeries }]);
+                    chartData.push(newCandle);
+                    if(chartData.length > MAX_CANDLES) chartData.shift();
+                    
+                    if(chartInstance) {
+                        chartInstance.updateSeries([{ data: chartData }]);
+                    }
                 }
             });
         }
 
         function closeChart() {
             document.getElementById('chart-modal').style.display = 'none';
-            if(currentChartShare) db.ref(`admin/candleData/${currentChartShare}`).off();
+            if(activeChartRef) activeChartRef.off();
+            if(chartInstance) {
+                chartInstance.destroy();
+                chartInstance = null;
+            }
         }
 
-        // 🔥 UPDATED: ADDED BUTTON ANIMATIONS
         function executeTrade(type) {
-            const qty = parseInt(document.getElementById('trade-qty').value);
+            const qtyInput = document.getElementById('trade-qty');
+            if(!qtyInput) return;
+            
+            const qty = parseInt(qtyInput.value);
             const share = allShares[currentChartShare];
             const currentWallet = userData.wallet || 0;
             const cost = share.price * qty;
@@ -619,10 +1003,10 @@
 
             if (type === 'buy') {
                 if (currentWallet < cost) {
-                    return Swal.fire('Not Enough Coins', `You need ₹${cost} but have ₹${currentWallet}`, 'warning');
+                    return Swal.fire('Insufficient Funds', `Required: ₹${cost} | Available: ₹${currentWallet}`, 'warning');
                 }
                 
-                if (qty > share.maxLimit) return Swal.fire('Limit', `Max buy limit is ${share.maxLimit}`, 'warning');
+                if (qty > share.maxLimit) return Swal.fire('Limit Reached', `Max buy limit is ${share.maxLimit}`, 'warning');
 
                 db.ref(`users/${currentUser.uid}`).update({
                     wallet: currentWallet - cost
@@ -637,12 +1021,18 @@
                     timestamp: Date.now()
                 });
 
-                Swal.fire('Success', 'Shares Purchased!', 'success');
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Asset Acquired',
+                    text: `Successfully bought ${qty} ${share.name}`,
+                    background: '#111', color: '#fff'
+                });
                 
-                // 🚀 ADDED: BUY ANIMATION
                 const buyBtn = document.querySelector('.trade-controls button[onclick*="buy"]');
-                buyBtn.classList.add('buy-anim');
-                setTimeout(() => buyBtn.classList.remove('buy-anim'), 450);
+                if(buyBtn) {
+                    buyBtn.classList.add('buy-anim');
+                    setTimeout(() => buyBtn.classList.remove('buy-anim'), 450);
+                }
             } 
             else if (type === 'sell') {
                 let userHasRef = null;
@@ -656,8 +1046,8 @@
                     }
                 });
 
-                if (!userHasRef) return Swal.fire('Error', 'You do not own this share', 'error');
-                if (qty > userHasQty) return Swal.fire('Error', 'Not enough shares', 'error');
+                if (!userHasRef) return Swal.fire('Error', 'You do not own this asset', 'error');
+                if (qty > userHasQty) return Swal.fire('Error', 'Not enough shares owned', 'error');
 
                 const sellValue = share.price * qty;
                 db.ref(`users/${currentUser.uid}`).update({
@@ -672,12 +1062,18 @@
                     });
                 }
 
-                Swal.fire('Success', `Sold for ₹${sellValue}`, 'success');
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Sold Successfully',
+                    text: `Credited ₹${sellValue}`,
+                    background: '#111', color: '#fff'
+                });
                 
-                // 🚀 ADDED: SELL ANIMATION
                 const sellBtn = document.querySelector('.trade-controls button[onclick*="sell"]');
-                sellBtn.classList.add('sell-anim');
-                setTimeout(() => sellBtn.classList.remove('sell-anim'), 450);
+                if(sellBtn) {
+                    sellBtn.classList.add('sell-anim');
+                    setTimeout(() => sellBtn.classList.remove('sell-anim'), 450);
+                }
             }
         }
 
@@ -695,7 +1091,7 @@
             const amount = document.getElementById('dep-amount').value;
             const utr = document.getElementById('dep-utr').value;
 
-            if(!amount || !utr) return Swal.fire('Error', 'Fill all fields', 'error');
+            if(!amount || !utr) return Swal.fire('Error', 'Please fill all fields', 'error');
 
             const reqRef = db.ref(`walletRequests/${currentUser.uid}`).push();
             reqRef.set({
@@ -707,13 +1103,17 @@
                 userEmail: currentUser.email
             });
 
-            // 🚀 TG NOTIFICATION
             sendTG(`📥 DEPOSIT REQUEST\nUser: ${currentUser.email}\nAmount: ₹${amount}\nPhone/UTR: ${utr}\nTime: ${new Date().toLocaleString()}`);
 
             const msg = `Deposit Request: %0AEmail: ${currentUser.email} %0AAmount: ${amount} %0ATransaction: ${utr}`;
             window.open(`https://wa.me/919891504624?text=${msg}`, '_blank');
 
-            Swal.fire('Submitted', 'Admin will verify soon.', 'success');
+            Swal.fire({
+                    icon: 'success',
+                    title: 'Request Sent',
+                    text: 'Admin will verify shortly.',
+                    background: '#111', color: '#fff'
+            });
             document.getElementById('dep-amount').value = '';
             document.getElementById('dep-utr').value = '';
         }
@@ -734,7 +1134,6 @@
                 userEmail: currentUser.email
             });
 
-            // 🚀 TG NOTIFICATION
             sendTG(`📤 WITHDRAW REQUEST\nUser: ${currentUser.email}\nAmount: ₹${amount}\nUPI: ${upi}\nTime: ${new Date().toLocaleString()}`);
 
             Swal.fire('Success', 'Withdrawal requested', 'success');
@@ -742,30 +1141,40 @@
 
         function renderHistory(snapshot) {
             const histDiv = document.getElementById('wallet-history');
+            if(!histDiv) return;
+            
             const data = snapshot.val();
             if(!data) return;
             
             histDiv.innerHTML = '';
             Object.values(data).reverse().forEach(item => {
-                const color = item.status === 'approved' ? 'green' : (item.status === 'rejected' ? 'red' : 'orange');
+                const color = item.status === 'approved' ? 'var(--neon-green)' : (item.status === 'rejected' ? 'var(--neon-red)' : 'var(--neon-cyan)');
+                const icon = item.type === 'deposit' ? 'fa-arrow-down' : 'fa-arrow-up';
+                
+                // Adjusted for Light Mode Visibility
                 histDiv.innerHTML += `
-                    <div style="display:flex; justify-content:space-between; padding:10px; background:var(--bg); margin-bottom:5px; border-radius:5px; font-size:12px;">
-                        <span>${item.type.toUpperCase()} (₹${item.amount})</span>
-                        <span style="color:${color}">${item.status.toUpperCase()}</span>
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:12px; background:var(--glass-panel); border-radius:10px; font-size:12px; margin-bottom: 8px; border: 1px solid var(--glass-border); box-shadow: var(--shadow-soft);">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <div style="width:30px; height:30px; background:rgba(125,125,125,0.1); border-radius:50%; display:flex; align-items:center; justify-content:center;">
+                                <i class="fa-solid ${icon}" style="color:${color}"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight:600; text-transform:capitalize; color: var(--text-main);">${item.type}</div>
+                                <div style="color:var(--text-muted);">₹${item.amount}</div>
+                            </div>
+                        </div>
+                        <span style="color:${color}; border:1px solid ${color}; padding:2px 6px; border-radius:4px; font-size:10px;">${item.status.toUpperCase()}</span>
                     </div>
                 `;
             });
         }
 
-        // 🔥 G. NAVIGATION FIX & UI (SAFE MODE)
-        // ✅ NEW: Explicit SwitchTab function (Fixes Mobile Buttons)
+        // 🔥 G. NAVIGATION & UI
         function switchTab(tab, btn) {
-            // Hide all sections
             document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
-            // Show target
-            document.getElementById(`tab-${tab}`).classList.remove('hidden');
+            const activeTab = document.getElementById(`tab-${tab}`);
+            if(activeTab) activeTab.classList.remove('hidden');
             
-            // Handle buttons
             document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
             if(btn) btn.classList.add('active');
         }
@@ -778,14 +1187,12 @@
         function toggleTheme() {
             document.body.classList.toggle('light-mode');
             localStorage.setItem('theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
-            if(chartInstance) chartInstance.updateOptions({ theme: { mode: document.body.classList.contains('light-mode') ? 'light' : 'dark' } });
         }
 
         function openLink(url) {
             window.open(url, '_blank');
         }
 
-        // Apply saved theme
         if (localStorage.getItem('theme') === 'light') document.body.classList.add('light-mode');
 
     </script>
