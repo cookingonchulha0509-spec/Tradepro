@@ -354,6 +354,12 @@
                 <button class="btn btn-primary" onclick="login()">
                     Log In <i class="fa-solid fa-arrow-right"></i>
                 </button>
+                
+                <!-- Google Login Button -->
+                <button class="btn btn-outline" onclick="loginWithGoogle()" style="margin-top:10px;">
+                   <i class="fa-brands fa-google"></i> Continue with Google
+                </button>
+
                 <p style="margin-top:20px; text-align:center; color:var(--text-muted); font-size: 13px;">
                     Don't have an account? <span style="color:var(--neon-cyan); cursor:pointer; font-weight:600;" onclick="toggleAuth('register')">Register</span>
                 </p>
@@ -366,6 +372,12 @@
                 <button class="btn btn-primary" onclick="register()">
                     Get Started <i class="fa-solid fa-rocket"></i>
                 </button>
+
+                <!-- Google Register Button -->
+                <button class="btn btn-outline" onclick="loginWithGoogle()" style="margin-top:10px;">
+                   <i class="fa-brands fa-google"></i> Continue with Google
+                </button>
+
                 <p style="margin-top:20px; text-align:center; color:var(--text-muted); font-size: 13px;">
                     Already a member? <span style="color:var(--neon-cyan); cursor:pointer; font-weight:600;" onclick="toggleAuth('login')">Log In</span>
                 </p>
@@ -639,6 +651,31 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.database();
+
+        // 🔥 GOOGLE SIGN-IN PROVIDER
+        const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+        function loginWithGoogle() {
+            auth.signInWithPopup(googleProvider)
+            .then((result) => {
+                const user = result.user;
+                // Save profile only for first-time user
+                db.ref("users/" + user.uid).once("value", snap => {
+                    if (!snap.exists()) {
+                        db.ref("users/" + user.uid).set({
+                            name: user.displayName || "Trader",
+                            email: user.email,
+                            wallet: 0,
+                            totalDeposit: 0,
+                            totalWithdraw: 0
+                        });
+                    }
+                });
+            })
+            .catch(err => {
+                Swal.fire("Error", err.message, "error");
+            });
+        }
 
         // Global State
         let currentUser = null;
