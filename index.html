@@ -410,7 +410,7 @@
                 <!-- DROPDOWN SETTINGS -->
                 <div id="settings-panel">
                     <button class="btn" onclick="toggleTheme()"><i class="fa-solid fa-moon"></i> Appearance</button>
-                    <button class="btn" onclick="openLink('https://t.me/tradeproleaks')"><i class="fa-brands fa-telegram"></i> Community</button>
+                    <button class="btn" onclick="openLink('https://t.me/tradepro')"><i class="fa-brands fa-telegram"></i> Community</button>
                     <button class="btn" onclick="openLink('https://wa.me/919891504624')"><i class="fa-brands fa-whatsapp"></i> Help Center</button>
                     <div style="height:1px; background:var(--glass-border); margin: 5px 0;"></div>
                     <button class="btn" style="color:var(--neon-red);" onclick="logout()"><i class="fa-solid fa-power-off"></i> Sign Out</button>
@@ -511,11 +511,17 @@
                     <p style="color:var(--text-muted); font-size:12px;">Real-time trends</p>
                 </div>
                 
-                <!-- Search bar cosmetic -->
+                <!-- WORKING SEARCH BAR -->
                 <div style="padding: 0 15px 15px;">
                     <div style="background: var(--glass-panel); padding: 10px; border-radius: 10px; border: 1px solid var(--glass-border); display:flex; gap:10px; align-items:center;">
                         <i class="fa-solid fa-search" style="color: var(--text-muted);"></i>
-                        <span style="color: var(--text-muted); font-size: 14px;">Search assets...</span>
+                        <input 
+                            type="text" 
+                            id="market-search" 
+                            placeholder="Search assets..." 
+                            oninput="filterMarket()" 
+                            style="width:100%; background:transparent; border:none; color:var(--text-main); font-size:14px; margin:0; padding:0; box-shadow:none;"
+                        >
                     </div>
                 </div>
 
@@ -735,7 +741,13 @@
 
             db.ref('admin/shares').on('value', (snapshot) => {
                 allShares = snapshot.val() || {};
-                renderMarket();
+                // Only render if search is empty to avoid overwriting user search
+                const searchVal = document.getElementById("market-search").value;
+                if(!searchVal) {
+                    renderMarket();
+                } else {
+                    filterMarket(); // Re-filter with new data
+                }
                 updateUI();
             });
 
@@ -855,6 +867,63 @@
                         <span class="green"><i class="fa-solid fa-arrow-trend-up"></i> ${s.return}% Return</span>
                         <span>Max: ${s.maxLimit}</span>
                     </div>
+                    <button class="btn btn-primary" style="margin-top:12px; padding:10px; font-size:13px; background:rgba(41, 98, 255, 0.1); border:1px solid var(--neon-blue); color:var(--neon-blue); box-shadow:none;" onclick="openChart('${id}')">
+                        View Chart
+                    </button>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        // 🔥 NEW SEARCH LOGIC 🔥
+        function filterMarket() {
+            const query = document.getElementById("market-search").value.toLowerCase();
+            const list = document.getElementById("market-list");
+            list.innerHTML = "";
+
+            const filtered = Object.keys(allShares).filter(id => {
+                const s = allShares[id];
+                if (!s || !s.active) return false;
+
+                return (
+                    s.name.toLowerCase().includes(query) ||
+                    String(s.price).includes(query) ||
+                    String(s.return).includes(query) ||
+                    id.toLowerCase().includes(query)
+                );
+            });
+
+            if (filtered.length === 0) {
+                list.innerHTML = `
+                    <div style="padding: 30px; text-align: center; opacity:0.7;">
+                        <i class="fa-solid fa-magnifying-glass" style="font-size: 26px; margin-bottom: 10px;"></i>
+                        <p style="font-size: 13px;">No assets found</p>
+                    </div>
+                `;
+                return;
+            }
+
+            filtered.forEach(id => {
+                const s = allShares[id];
+
+                const card = document.createElement("div");
+                card.className = "share-card";
+                card.innerHTML = `
+                    <div class="flex-between">
+                        <div>
+                            <b>${s.name}</b>
+                            <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Crypto Asset</div>
+                        </div>
+                        <b class="green" style="font-size:16px;">₹${s.price}</b>
+                    </div>
+                    
+                    <div style="height:1px; background:var(--glass-border); margin:10px 0;"></div>
+                    
+                    <div class="flex-between" style="font-size:12px; color:var(--text-muted);">
+                        <span class="green"><i class="fa-solid fa-arrow-trend-up"></i> ${s.return}% Return</span>
+                        <span>Max: ${s.maxLimit}</span>
+                    </div>
+
                     <button class="btn btn-primary" style="margin-top:12px; padding:10px; font-size:13px; background:rgba(41, 98, 255, 0.1); border:1px solid var(--neon-blue); color:var(--neon-blue); box-shadow:none;" onclick="openChart('${id}')">
                         View Chart
                     </button>
