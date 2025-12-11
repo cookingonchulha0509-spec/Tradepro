@@ -477,7 +477,7 @@
                         <div class="qr-container">
                             <img src="qr.png" alt="Scan QR" style="width: 140px; height: 140px;">
                         </div>
-                        <p style="font-size:12px; color:var(--text-muted); margin:10px 0;">Processing time: 4-6 Hours</p>
+                        <p style="font-size:12px; color:var(--text-muted); margin:10px 0;">Processing time: 4-6 Hours “Send a WhatsApp alert when a payment screenshot arrives.”</p>
                         
                         <input type="number" id="dep-amount" placeholder="Amount (₹)">
                         <input type="text" id="dep-utr" placeholder="UTR / Phone Number">
@@ -811,15 +811,18 @@
                 const colorClass = pl >= 0 ? 'green' : 'red';
                 const plIcon = pl >= 0 ? 'fa-caret-up' : 'fa-caret-down';
 
+                // 🔥 LOGO CHECK FOR PORTFOLIO
+                const logoHtml = (currentShare && currentShare.logo) 
+                    ? `<img src="${currentShare.logo}" style="width:35px; height:35px; border-radius:10px; object-fit:cover;">`
+                    : `<div style="background:rgba(41, 98, 255, 0.1); width:35px; height:35px; border-radius:10px; display:flex; align-items:center; justify-content:center;"><i class="fa-solid fa-bolt" style="color:var(--neon-blue);"></i></div>`;
+
                 const card = document.createElement('div');
                 card.className = 'share-card';
                 card.onclick = () => openChart(shareId);
                 card.innerHTML = `
                     <div class="flex-between">
                         <div class="flex" style="gap:10px;">
-                            <div style="background:rgba(41, 98, 255, 0.1); width:35px; height:35px; border-radius:10px; display:flex; align-items:center; justify-content:center;">
-                                <i class="fa-solid fa-bolt" style="color:var(--neon-blue);"></i>
-                            </div>
+                            ${logoHtml}
                             <b>${currentShare ? currentShare.name : 'Unknown'}</b>
                         </div>
                         <span class="${colorClass}" style="font-weight:600;">
@@ -850,13 +853,21 @@
                 const s = allShares[id];
                 if (!s.active) return;
 
+                // 🔥 LOGO CHECK FOR MARKET
+                const logoImg = s.logo 
+                    ? `<img src="${s.logo}" style="width:32px; height:32px; border-radius:50%; margin-right:10px; object-fit:cover;">` 
+                    : ``;
+
                 const card = document.createElement('div');
                 card.className = 'share-card';
                 card.innerHTML = `
                     <div class="flex-between">
-                        <div>
-                            <b>${s.name}</b>
-                            <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Crypto Asset</div>
+                        <div class="flex">
+                            ${logoImg}
+                            <div>
+                                <b>${s.name}</b>
+                                <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Crypto Asset</div>
+                            </div>
                         </div>
                         <b class="green" style="font-size:16px;">₹${s.price}</b>
                     </div>
@@ -906,13 +917,21 @@
             filtered.forEach(id => {
                 const s = allShares[id];
 
+                // 🔥 LOGO CHECK FOR FILTERED MARKET
+                const logoImg = s.logo 
+                    ? `<img src="${s.logo}" style="width:32px; height:32px; border-radius:50%; margin-right:10px; object-fit:cover;">` 
+                    : ``;
+
                 const card = document.createElement("div");
                 card.className = "share-card";
                 card.innerHTML = `
                     <div class="flex-between">
-                        <div>
-                            <b>${s.name}</b>
-                            <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Crypto Asset</div>
+                        <div class="flex">
+                            ${logoImg}
+                            <div>
+                                <b>${s.name}</b>
+                                <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Crypto Asset</div>
+                            </div>
                         </div>
                         <b class="green" style="font-size:16px;">₹${s.price}</b>
                     </div>
