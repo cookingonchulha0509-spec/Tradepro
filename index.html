@@ -203,6 +203,19 @@
             box-shadow: var(--shadow-soft);
         }
 
+        /* --- BAN SCREEN --- */
+        #ban-screen {
+            position: fixed; inset: 0; z-index: 5000;
+            background: #050505; /* Deep black for serious impact */
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            padding: 25px; text-align: center;
+        }
+        #ban-screen::before {
+            content: ''; position: absolute; inset: 0;
+            background: radial-gradient(circle at center, rgba(255, 23, 68, 0.1) 0%, transparent 70%);
+            z-index: -1;
+        }
+
         /* --- APP HEADER --- */
         header { 
             padding: 15px 20px; 
@@ -318,6 +331,12 @@
             0% { box-shadow: 0 0 0 0 rgba(255, 23, 68, 0.7); transform: scale(0.98); }
             100% { box-shadow: 0 0 0 20px rgba(255, 23, 68, 0); transform: scale(1); }
         }
+        .pulse-red { animation: pulseWarning 2s infinite; }
+        @keyframes pulseWarning {
+            0% { box-shadow: 0 0 0 0 rgba(255, 23, 68, 0.4); }
+            70% { box-shadow: 0 0 0 20px rgba(255, 23, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 23, 68, 0); }
+        }
 
         /* Terms Modal */
         #terms-modal { background: rgba(0,0,0,0.95); backdrop-filter: blur(5px); }
@@ -386,6 +405,30 @@
                 <span style="color: var(--text-main);">•</span> Protect your credentials.
             </p>
             <button class="btn btn-primary" onclick="acceptTerms()">I Understand & Accept</button>
+        </div>
+    </div>
+
+    <!-- ================= FULLSCREEN BAN SCREEN ================= -->
+    <div id="ban-screen" class="hidden">
+        <div class="fade-in" style="width: 100%; max-width: 400px;">
+            <div style="width: 80px; height: 80px; background: rgba(255, 23, 68, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 25px; border: 1px solid var(--neon-red);" class="pulse-red">
+                <i class="fa-solid fa-ban" style="font-size: 35px; color: var(--neon-red);"></i>
+            </div>
+            
+            <h1 style="color: var(--neon-red); margin-bottom: 10px; font-size: 26px;">ACCOUNT SUSPENDED</h1>
+            <p style="color: var(--text-muted); font-size: 15px;">Your access to the platform has been restricted by the administrator.</p>
+            
+            <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 16px; margin: 30px 0; border: 1px solid var(--glass-border); text-align: left;">
+                <small style="color: var(--text-muted); display: block; margin-bottom: 5px;">Reason for Suspension:</small>
+                <p id="ban-reason-text" style="color: white; font-weight: 600; font-size: 16px;">Violation of Terms</p>
+            </div>
+
+            <button class="btn" style="background: #25D366; color: white; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);" onclick="window.open('https://wa.me/919891504624','_blank')">
+                <i class="fa-brands fa-whatsapp" style="font-size: 20px;"></i> Contact Support
+            </button>
+            <button class="btn-outline" style="margin-top: 15px; border: none; color: var(--text-muted);" onclick="logout()">
+                Sign Out
+            </button>
         </div>
     </div>
 
@@ -671,13 +714,13 @@
         auth.onAuthStateChanged((user) => {
             if (user) {
                 currentUser = user;
-                document.getElementById('auth-screen').classList.add('hidden');
-                document.getElementById('app').classList.remove('hidden');
+                // DO NOT REMOVE hidden from auth-screen here immediately, let initAppData decide based on ban status
                 checkTerms();
                 initAppData();
             } else {
                 document.getElementById('auth-screen').classList.remove('hidden');
                 document.getElementById('app').classList.add('hidden');
+                document.getElementById('ban-screen').classList.add('hidden');
             }
         });
 
@@ -721,7 +764,8 @@
                     email: email,
                     wallet: 0,
                     totalDeposit: 0,
-                    totalWithdraw: 0
+                    totalWithdraw: 0,
+                    banned: false
                 });
             }).catch(e => Swal.fire('Error', e.message, 'error'));
         }
@@ -731,12 +775,45 @@
             location.reload();
         }
 
-        // 🔥 C. DATA FETCHING
+        // 🔥 C. DATA FETCHING (UPDATED WITH BAN LOGIC)
         function initAppData() {
             const uid = currentUser.uid;
 
             db.ref('users/' + uid).on('value', (snapshot) => {
                 userData = snapshot.val() || {};
+
+                // --- 🛡️ AUTO BAN & UI LOCK SYSTEM 🛡️ ---
+                if (userData.banned === true) {
+                    
+                    // 1. Check if temporary ban has expired
+                    if (userData.banUntil && Date.now() > userData.banUntil) {
+                        // Auto Unban
+                        db.ref('users/' + uid).update({
+                            banned: false,
+                            banReason: null,
+                            banUntil: null
+                        });
+                        // Don't return, let the flow continue to unhide app in next update
+                    } else {
+                        // 2. ENFORCE BAN
+                        document.getElementById('auth-screen').classList.add('hidden');
+                        document.getElementById('app').classList.add('hidden');
+                        document.getElementById('ban-screen').classList.remove('hidden');
+                        
+                        // Show Reason
+                        const reasonEl = document.getElementById('ban-reason-text');
+                        if(reasonEl) reasonEl.innerText = userData.banReason || "Violation of Terms";
+                        
+                        return; // ⛔ STOP HERE: Do not load app UI
+                    }
+                } else {
+                    // Not banned
+                    document.getElementById('ban-screen').classList.add('hidden');
+                    document.getElementById('auth-screen').classList.add('hidden');
+                    document.getElementById('app').classList.remove('hidden');
+                }
+                // ---------------------------------------------
+
                 updateUI();
             });
 
