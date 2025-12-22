@@ -1,4 +1,3 @@
-<!-- START OF FILE index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -203,19 +202,6 @@
             box-shadow: var(--shadow-soft);
         }
 
-        /* --- BAN SCREEN --- */
-        #ban-screen {
-            position: fixed; inset: 0; z-index: 5000;
-            background: #050505; /* Deep black for serious impact */
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            padding: 25px; text-align: center;
-        }
-        #ban-screen::before {
-            content: ''; position: absolute; inset: 0;
-            background: radial-gradient(circle at center, rgba(255, 23, 68, 0.1) 0%, transparent 70%);
-            z-index: -1;
-        }
-
         /* --- APP HEADER --- */
         header { 
             padding: 15px 20px; 
@@ -331,12 +317,6 @@
             0% { box-shadow: 0 0 0 0 rgba(255, 23, 68, 0.7); transform: scale(0.98); }
             100% { box-shadow: 0 0 0 20px rgba(255, 23, 68, 0); transform: scale(1); }
         }
-        .pulse-red { animation: pulseWarning 2s infinite; }
-        @keyframes pulseWarning {
-            0% { box-shadow: 0 0 0 0 rgba(255, 23, 68, 0.4); }
-            70% { box-shadow: 0 0 0 20px rgba(255, 23, 68, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(255, 23, 68, 0); }
-        }
 
         /* Terms Modal */
         #terms-modal { background: rgba(0,0,0,0.95); backdrop-filter: blur(5px); }
@@ -374,6 +354,12 @@
                 <button class="btn btn-primary" onclick="login()">
                     Log In <i class="fa-solid fa-arrow-right"></i>
                 </button>
+                
+                <!-- Google Login Button -->
+                <button class="btn btn-outline" onclick="loginWithGoogle()" style="margin-top:10px;">
+                   <i class="fa-brands fa-google"></i> Continue with Google
+                </button>
+
                 <p style="margin-top:20px; text-align:center; color:var(--text-muted); font-size: 13px;">
                     Don't have an account? <span style="color:var(--neon-cyan); cursor:pointer; font-weight:600;" onclick="toggleAuth('register')">Register</span>
                 </p>
@@ -386,6 +372,12 @@
                 <button class="btn btn-primary" onclick="register()">
                     Get Started <i class="fa-solid fa-rocket"></i>
                 </button>
+
+                <!-- Google Register Button -->
+                <button class="btn btn-outline" onclick="loginWithGoogle()" style="margin-top:10px;">
+                   <i class="fa-brands fa-google"></i> Continue with Google
+                </button>
+
                 <p style="margin-top:20px; text-align:center; color:var(--text-muted); font-size: 13px;">
                     Already a member? <span style="color:var(--neon-cyan); cursor:pointer; font-weight:600;" onclick="toggleAuth('login')">Log In</span>
                 </p>
@@ -405,30 +397,6 @@
                 <span style="color: var(--text-main);">•</span> Protect your credentials.
             </p>
             <button class="btn btn-primary" onclick="acceptTerms()">I Understand & Accept</button>
-        </div>
-    </div>
-
-    <!-- ================= FULLSCREEN BAN SCREEN ================= -->
-    <div id="ban-screen" class="hidden">
-        <div class="fade-in" style="width: 100%; max-width: 400px;">
-            <div style="width: 80px; height: 80px; background: rgba(255, 23, 68, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 25px; border: 1px solid var(--neon-red);" class="pulse-red">
-                <i class="fa-solid fa-ban" style="font-size: 35px; color: var(--neon-red);"></i>
-            </div>
-            
-            <h1 style="color: var(--neon-red); margin-bottom: 10px; font-size: 26px;">ACCOUNT SUSPENDED</h1>
-            <p style="color: var(--text-muted); font-size: 15px;">Your access to the platform has been restricted by the administrator.</p>
-            
-            <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 16px; margin: 30px 0; border: 1px solid var(--glass-border); text-align: left;">
-                <small style="color: var(--text-muted); display: block; margin-bottom: 5px;">Reason for Suspension:</small>
-                <p id="ban-reason-text" style="color: white; font-weight: 600; font-size: 16px;">Violation of Terms</p>
-            </div>
-
-            <button class="btn" style="background: #25D366; color: white; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);" onclick="window.open('https://wa.me/919891504624','_blank')">
-                <i class="fa-brands fa-whatsapp" style="font-size: 20px;"></i> Contact Support
-            </button>
-            <button class="btn-outline" style="margin-top: 15px; border: none; color: var(--text-muted);" onclick="logout()">
-                Sign Out
-            </button>
         </div>
     </div>
 
@@ -521,7 +489,7 @@
                         <div class="qr-container">
                             <img src="qr.png" alt="Scan QR" style="width: 140px; height: 140px;">
                         </div>
-                        <p style="font-size:12px; color:var(--text-muted); margin:10px 0;">Processing time: 4-6 Hours “Send a WhatsApp alert when a payment screenshot arrives.”</p>
+                        <p style="font-size:12px; color:var(--text-muted); margin:10px 0;">Processing time: 4-6 Hours</p>
                         
                         <input type="number" id="dep-amount" placeholder="Amount (₹)">
                         <input type="text" id="dep-utr" placeholder="UTR / Phone Number">
@@ -684,6 +652,31 @@
         const auth = firebase.auth();
         const db = firebase.database();
 
+        // 🔥 GOOGLE SIGN-IN PROVIDER
+        const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+        function loginWithGoogle() {
+            auth.signInWithPopup(googleProvider)
+            .then((result) => {
+                const user = result.user;
+                // Save profile only for first-time user
+                db.ref("users/" + user.uid).once("value", snap => {
+                    if (!snap.exists()) {
+                        db.ref("users/" + user.uid).set({
+                            name: user.displayName || "Trader",
+                            email: user.email,
+                            wallet: 0,
+                            totalDeposit: 0,
+                            totalWithdraw: 0
+                        });
+                    }
+                });
+            })
+            .catch(err => {
+                Swal.fire("Error", err.message, "error");
+            });
+        }
+
         // Global State
         let currentUser = null;
         let userData = {};
@@ -714,13 +707,13 @@
         auth.onAuthStateChanged((user) => {
             if (user) {
                 currentUser = user;
-                // DO NOT REMOVE hidden from auth-screen here immediately, let initAppData decide based on ban status
+                document.getElementById('auth-screen').classList.add('hidden');
+                document.getElementById('app').classList.remove('hidden');
                 checkTerms();
                 initAppData();
             } else {
                 document.getElementById('auth-screen').classList.remove('hidden');
                 document.getElementById('app').classList.add('hidden');
-                document.getElementById('ban-screen').classList.add('hidden');
             }
         });
 
@@ -764,8 +757,7 @@
                     email: email,
                     wallet: 0,
                     totalDeposit: 0,
-                    totalWithdraw: 0,
-                    banned: false
+                    totalWithdraw: 0
                 });
             }).catch(e => Swal.fire('Error', e.message, 'error'));
         }
@@ -775,45 +767,12 @@
             location.reload();
         }
 
-        // 🔥 C. DATA FETCHING (UPDATED WITH BAN LOGIC)
+        // 🔥 C. DATA FETCHING
         function initAppData() {
             const uid = currentUser.uid;
 
             db.ref('users/' + uid).on('value', (snapshot) => {
                 userData = snapshot.val() || {};
-
-                // --- 🛡️ AUTO BAN & UI LOCK SYSTEM 🛡️ ---
-                if (userData.banned === true) {
-                    
-                    // 1. Check if temporary ban has expired
-                    if (userData.banUntil && Date.now() > userData.banUntil) {
-                        // Auto Unban
-                        db.ref('users/' + uid).update({
-                            banned: false,
-                            banReason: null,
-                            banUntil: null
-                        });
-                        // Don't return, let the flow continue to unhide app in next update
-                    } else {
-                        // 2. ENFORCE BAN
-                        document.getElementById('auth-screen').classList.add('hidden');
-                        document.getElementById('app').classList.add('hidden');
-                        document.getElementById('ban-screen').classList.remove('hidden');
-                        
-                        // Show Reason
-                        const reasonEl = document.getElementById('ban-reason-text');
-                        if(reasonEl) reasonEl.innerText = userData.banReason || "Violation of Terms";
-                        
-                        return; // ⛔ STOP HERE: Do not load app UI
-                    }
-                } else {
-                    // Not banned
-                    document.getElementById('ban-screen').classList.add('hidden');
-                    document.getElementById('auth-screen').classList.add('hidden');
-                    document.getElementById('app').classList.remove('hidden');
-                }
-                // ---------------------------------------------
-
                 updateUI();
             });
 
@@ -889,18 +848,15 @@
                 const colorClass = pl >= 0 ? 'green' : 'red';
                 const plIcon = pl >= 0 ? 'fa-caret-up' : 'fa-caret-down';
 
-                // 🔥 LOGO CHECK FOR PORTFOLIO
-                const logoHtml = (currentShare && currentShare.logo) 
-                    ? `<img src="${currentShare.logo}" style="width:35px; height:35px; border-radius:10px; object-fit:cover;">`
-                    : `<div style="background:rgba(41, 98, 255, 0.1); width:35px; height:35px; border-radius:10px; display:flex; align-items:center; justify-content:center;"><i class="fa-solid fa-bolt" style="color:var(--neon-blue);"></i></div>`;
-
                 const card = document.createElement('div');
                 card.className = 'share-card';
                 card.onclick = () => openChart(shareId);
                 card.innerHTML = `
                     <div class="flex-between">
                         <div class="flex" style="gap:10px;">
-                            ${logoHtml}
+                            <div style="background:rgba(41, 98, 255, 0.1); width:35px; height:35px; border-radius:10px; display:flex; align-items:center; justify-content:center;">
+                                <i class="fa-solid fa-bolt" style="color:var(--neon-blue);"></i>
+                            </div>
                             <b>${currentShare ? currentShare.name : 'Unknown'}</b>
                         </div>
                         <span class="${colorClass}" style="font-weight:600;">
@@ -931,21 +887,13 @@
                 const s = allShares[id];
                 if (!s.active) return;
 
-                // 🔥 LOGO CHECK FOR MARKET
-                const logoImg = s.logo 
-                    ? `<img src="${s.logo}" style="width:32px; height:32px; border-radius:50%; margin-right:10px; object-fit:cover;">` 
-                    : ``;
-
                 const card = document.createElement('div');
                 card.className = 'share-card';
                 card.innerHTML = `
                     <div class="flex-between">
-                        <div class="flex">
-                            ${logoImg}
-                            <div>
-                                <b>${s.name}</b>
-                                <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Crypto Asset</div>
-                            </div>
+                        <div>
+                            <b>${s.name}</b>
+                            <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Crypto Asset</div>
                         </div>
                         <b class="green" style="font-size:16px;">₹${s.price}</b>
                     </div>
@@ -995,21 +943,13 @@
             filtered.forEach(id => {
                 const s = allShares[id];
 
-                // 🔥 LOGO CHECK FOR FILTERED MARKET
-                const logoImg = s.logo 
-                    ? `<img src="${s.logo}" style="width:32px; height:32px; border-radius:50%; margin-right:10px; object-fit:cover;">` 
-                    : ``;
-
                 const card = document.createElement("div");
                 card.className = "share-card";
                 card.innerHTML = `
                     <div class="flex-between">
-                        <div class="flex">
-                            ${logoImg}
-                            <div>
-                                <b>${s.name}</b>
-                                <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Crypto Asset</div>
-                            </div>
+                        <div>
+                            <b>${s.name}</b>
+                            <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Crypto Asset</div>
                         </div>
                         <b class="green" style="font-size:16px;">₹${s.price}</b>
                     </div>
@@ -1201,17 +1141,6 @@
                 }
             } 
             else if (type === 'sell') {
-                // 🔥 NEW LOGIC: BLOCKED SELL PRICE CHECK
-                if (share.blockedSellPrice && share.price === share.blockedSellPrice) {
-                     Swal.fire({
-                        icon: 'error',
-                        title: 'Trade Restricted',
-                        text: 'Selling is temporarily restricted at this price level. Please wait for the price to move.',
-                        background: '#111', color: '#fff'
-                    });
-                    return; // ⛔ Stop execution here
-                }
-
                 let userHasRef = null;
                 let userHasQty = 0;
                 let userShares = userData.shares || {};
