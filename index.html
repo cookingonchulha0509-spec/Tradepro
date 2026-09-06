@@ -3,20 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Industrial Machine Vibration Diagnostic Tool</title>
+    <title>Appliance Vibration Diagnostic Tool</title>
     <style>
-        /* Dark & Stealth UI - Military-grade, high-end diagnostic aesthetic */
+        /* Stealth UI - Matte Black & Charcoal */
         :root {
             --bg-color: #121212;
-            --panel-bg: #1e1e1e;
+            --panel-bg: #1c1c1c;
             --text-main: #e0e0e0;
-            --text-muted: #888888;
-            --accent-neutral: #555555;
-            --accent-scan: #4a90e2;
+            --text-muted: #777777;
+            --accent-neutral: #444444;
+            --accent-scan: #3498db;
             --accent-success: #2ecc71;
             --accent-danger: #e74c3c;
+            --accent-warning: #f1c40f;
             --font-stack: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            --font-mono: 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
+            --font-mono: 'SF Mono', Consolas, 'Liberation Mono', monospace;
         }
 
         * {
@@ -35,45 +36,43 @@
             justify-content: center;
             min-height: 100vh;
             overflow: hidden;
+            user-select: none;
         }
 
-        #app-header {
+        #header {
             position: absolute;
-            top: 20px;
-            left: 20px;
+            top: 25px;
+            left: 25px;
             z-index: 10;
         }
 
-        #app-header h1 {
-            font-size: 1.2rem;
-            font-weight: 600;
-            letter-spacing: 1px;
+        #header h1 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
             text-transform: uppercase;
-            color: var(--text-main);
         }
 
-        #app-header p {
+        #header p {
             font-family: var(--font-mono);
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: var(--text-muted);
-            margin-top: 4px;
+            margin-top: 5px;
         }
 
-        #diagnostic-container {
+        #scanner-container {
             position: relative;
             width: 100%;
-            max-width: 800px;
+            max-width: 900px;
             aspect-ratio: 4/3;
             background-color: #000;
             border: 1px solid var(--accent-neutral);
             border-radius: 4px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.8);
             overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
-        video {
-            display: none; /* Hidden, we draw to canvas */
-        }
+        video { display: none; } /* Hidden, drawn directly to canvas */
 
         canvas {
             display: block;
@@ -82,102 +81,110 @@
             object-fit: cover;
         }
 
-        #controls {
-            margin-top: 30px;
-            display: flex;
-            gap: 15px;
-            z-index: 10;
-        }
-
-        button {
-            background-color: var(--panel-bg);
-            color: var(--text-main);
-            border: 1px solid var(--accent-neutral);
-            padding: 12px 24px;
-            font-size: 0.9rem;
-            font-family: var(--font-stack);
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+        /* UI Overlays */
+        #shake-warning {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(231, 76, 60, 0.9);
+            color: #fff;
+            padding: 8px 16px;
             border-radius: 2px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-        }
-
-        button:hover:not(:disabled) {
-            background-color: #2a2a2a;
-            border-color: var(--text-muted);
-        }
-
-        button:active:not(:disabled) {
-            transform: translateY(1px);
-        }
-
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        #start-btn {
-            border-left: 3px solid var(--text-main);
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            display: none;
+            z-index: 20;
+            box-shadow: 0 0 10px rgba(231, 76, 60, 0.5);
         }
 
         #status-overlay {
             position: absolute;
-            bottom: 20px;
+            bottom: 25px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(18, 18, 18, 0.85);
-            padding: 10px 20px;
+            background: rgba(28, 28, 28, 0.95);
+            padding: 15px 25px;
             border: 1px solid var(--accent-neutral);
             border-radius: 2px;
             font-family: var(--font-mono);
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             text-align: center;
-            backdrop-filter: blur(4px);
             display: none;
             z-index: 20;
-            white-space: nowrap;
+            backdrop-filter: blur(5px);
         }
-        
-        #scan-progress-bar {
+
+        #progress-bar {
             position: absolute;
             bottom: 0;
             left: 0;
-            height: 4px;
+            height: 5px;
             background-color: var(--accent-scan);
             width: 0%;
             transition: width 0.1s linear;
             z-index: 15;
         }
 
-        /* Scan Line Animation Overlay */
         .scanline {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
+            background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.15) 50%);
             background-size: 100% 4px;
             pointer-events: none;
             z-index: 5;
+        }
+
+        #controls {
+            margin-top: 30px;
+            z-index: 10;
+        }
+
+        button {
+            background-color: var(--panel-bg);
+            color: var(--text-main);
+            border: 1px solid var(--text-muted);
+            padding: 14px 28px;
+            font-size: 0.95rem;
+            font-family: var(--font-stack);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            border-radius: 2px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        button:hover:not(:disabled) {
+            background-color: #2a2a2a;
+            border-color: var(--text-main);
+            box-shadow: 0 0 10px rgba(255,255,255,0.1);
+        }
+
+        button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
         }
     </style>
 </head>
 <body>
 
-    <div id="app-header">
-        <h1>Vibration Diagnostic Tool</h1>
-        <p>SYS.VER: EVM-FFT-1.0.4 | STATUS: <span id="sys-status">INITIALIZING</span></p>
+    <div id="header">
+        <h1>Appliance Diagnostic Scanner</h1>
+        <p>TARGET: 5Hz - 30Hz | GRID: 20x20 | STATUS: <span id="sys-status">INIT</span></p>
     </div>
 
-    <div id="diagnostic-container">
+    <div id="scanner-container">
         <video id="camera-feed" autoplay playsinline muted></video>
         <canvas id="main-canvas"></canvas>
         <div class="scanline"></div>
-        <div id="scan-progress-bar"></div>
+        <div id="progress-bar"></div>
+        <div id="shake-warning">⚠️ HOLD DEVICE STEADY - DATA PAUSED</div>
         <div id="status-overlay"></div>
     </div>
 
@@ -187,62 +194,71 @@
 
     <script>
         /**
-         * Core Application State & Config
+         * CONFIGURATION
          */
         const CONFIG = {
-            scanDurationMs: 5000,         // 5 seconds analysis window
-            gridSize: 16,                 // 16x16 targeting box grid
-            targetBoxRatio: 0.5,          // Box takes up 50% of canvas dimension
-            freqMin: 5,                   // Minimum frequency to look for (Hz)
-            freqMax: 60,                  // Maximum frequency (Hz) - Limited by Nyquist (FPS/2)
-            anomalyThreshold: 8.5         // FFT amplitude threshold for identifying anomalies
+            scanDurationMs: 7000,         // 7-second analysis window
+            gridSize: 20,                 // 20x20 grid (400 blocks)
+            targetBoxRatio: 0.6,          // Targeting box takes up 60% of canvas
+            freqMin: 5,                   // Min frequency (Hz) for home appliances
+            freqMax: 30,                  // Max frequency (Hz) for home appliances
+            anomalyThreshold: 2.0,        // FFT Amplitude threshold for anomaly detection
+            shakeThreshold: 1.8           // m/s^2 delta threshold to detect hand shake
         };
 
         const state = {
-            status: 'INIT', // INIT, IDLE, SCANNING, ANALYZING, RESULT
-            cameraStream: null,
+            status: 'INIT', // INIT, IDLE, SCANNING, RESULT
+            stream: null,
             scanStartTime: 0,
-            frameCount: 0,
-            frameTimestamps: [],
-            // 2D Array storing time-series data for each grid cell
-            // timeSeriesData[cellIndex][frameIndex]
+            
+            // Frame tracking
+            totalFramesCaptured: 0,
+            elapsedCaptureTimeMs: 0,
+            lastFrameTimestamp: 0,
+            
+            // 2D Array: timeSeriesData[blockIndex][frameIndex]
             timeSeriesData: [], 
-            scanResult: null,
-            failingCells: []
+            
+            // Device Motion
+            isShaking: false,
+            lastAccel: { x: null, y: null, z: null },
+            
+            // Results
+            failingBlocks: [],
+            scanResult: null
         };
 
-        /**
-         * DOM Elements
-         */
+        // DOM Elements
         const video = document.getElementById('camera-feed');
         const canvas = document.getElementById('main-canvas');
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
         const startBtn = document.getElementById('start-btn');
         const statusOverlay = document.getElementById('status-overlay');
+        const shakeWarning = document.getElementById('shake-warning');
         const sysStatus = document.getElementById('sys-status');
-        const progressBar = document.getElementById('scan-progress-bar');
+        const progressBar = document.getElementById('progress-bar');
 
         /**
-         * Initialization - WebRTC Camera Access
+         * 1. WEBRTC CAMERA SETUP
          */
         async function initCamera() {
             try {
                 const constraints = {
                     video: {
-                        facingMode: 'environment', // Prefer rear camera for industrial scanning
+                        facingMode: 'environment', // Rear camera
                         width: { ideal: 1280 },
-                        height: { ideal: 720 }
+                        height: { ideal: 720 },
+                        frameRate: { ideal: 60 } // Request high framerate for better Nyquist limit
                     },
                     audio: false
                 };
                 
                 const stream = await navigator.mediaDevices.getUserMedia(constraints);
                 video.srcObject = stream;
-                state.cameraStream = stream;
+                state.stream = stream;
                 
                 video.onloadedmetadata = () => {
                     video.play();
-                    // Match canvas internal resolution to video aspect ratio
                     canvas.width = video.videoWidth;
                     canvas.height = video.videoHeight;
                     
@@ -250,196 +266,348 @@
                     sysStatus.innerText = 'READY';
                     startBtn.disabled = false;
                     
-                    // Start render loop
                     requestAnimationFrame(renderLoop);
                 };
             } catch (err) {
-                console.error("Camera access failed:", err);
+                console.error("Camera access error:", err);
                 sysStatus.innerText = 'CAMERA ERROR';
                 sysStatus.style.color = 'var(--accent-danger)';
-                alert("Camera access is required for the diagnostic tool.");
+                alert("Camera permission is required to analyze vibrations.");
             }
         }
 
         /**
-         * Pure JavaScript Fast Fourier Transform (Cooley-Tukey Radix-2)
-         * Modifies real and imag arrays in place. Arrays must be power of 2 length.
+         * 2. ANTI-SHAKE DEVICE MOTION TRACKING
+         * We measure the delta of acceleration (including gravity) to isolate hand-shakes.
+         */
+        function handleMotion(event) {
+            const acc = event.accelerationIncludingGravity || event.acceleration;
+            if (!acc || acc.x === null) return;
+
+            if (state.lastAccel.x !== null) {
+                const dx = acc.x - state.lastAccel.x;
+                const dy = acc.y - state.lastAccel.y;
+                const dz = acc.z - state.lastAccel.z;
+                
+                // Calculate magnitude of acceleration delta
+                const delta = Math.sqrt(dx*dx + dy*dy + dz*dz);
+                
+                if (delta > CONFIG.shakeThreshold) {
+                    state.isShaking = true;
+                } else {
+                    state.isShaking = false;
+                }
+            }
+            state.lastAccel = { x: acc.x, y: acc.y, z: acc.z };
+        }
+
+        // Handle iOS 13+ permission requirements for DeviceMotion
+        async function requestMotionPermission() {
+            if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+                try {
+                    const permission = await DeviceMotionEvent.requestPermission();
+                    if (permission === 'granted') {
+                        window.addEventListener('devicemotion', handleMotion);
+                    }
+                } catch (e) {
+                    console.error("DeviceMotion permission denied:", e);
+                }
+            } else {
+                window.addEventListener('devicemotion', handleMotion);
+            }
+        }
+
+        /**
+         * 3. RENDER & DATA CAPTURE LOOP
+         */
+        function renderLoop(timestamp) {
+            if (!state.stream) return;
+
+            const w = canvas.width;
+            const h = canvas.height;
+            
+            // Targeting box dimensions
+            const boxW = w * CONFIG.targetBoxRatio;
+            const boxH = h * CONFIG.targetBoxRatio;
+            const boxX = (w - boxW) / 2;
+            const boxY = (h - boxH) / 2;
+
+            // Draw underlying video frame
+            ctx.drawImage(video, 0, 0, w, h);
+
+            if (state.status === 'SCANNING') {
+                const totalElapsedMs = timestamp - state.scanStartTime;
+                const progress = Math.min((totalElapsedMs / CONFIG.scanDurationMs) * 100, 100);
+                progressBar.style.width = `${progress}%`;
+
+                // Anti-Shake Logic
+                if (state.isShaking) {
+                    shakeWarning.style.display = 'block';
+                    // PAUSE pixel data collection for this frame (do not extract or push data)
+                } else {
+                    shakeWarning.style.display = 'none';
+                    
+                    // Collect Frame Data
+                    const frameData = ctx.getImageData(boxX, boxY, boxW, boxH);
+                    extractGridIntensities(frameData, boxW, boxH);
+                    
+                    if (state.lastFrameTimestamp !== 0) {
+                        state.elapsedCaptureTimeMs += (timestamp - state.lastFrameTimestamp);
+                    }
+                    state.lastFrameTimestamp = timestamp;
+                    state.totalFramesCaptured++;
+                }
+
+                // Visual Overlays during scan
+                drawGridOverlay(boxX, boxY, boxW, boxH, 'rgba(255, 255, 255, 0.15)');
+                drawTargetBox(boxX, boxY, boxW, boxH, 'var(--accent-scan)', false);
+
+                // Check for completion
+                if (totalElapsedMs >= CONFIG.scanDurationMs) {
+                    progressBar.style.width = '0%';
+                    shakeWarning.style.display = 'none';
+                    analyzeData();
+                } else {
+                    requestAnimationFrame(renderLoop);
+                }
+
+            } else if (state.status === 'IDLE' || state.status === 'INIT') {
+                drawTargetBox(boxX, boxY, boxW, boxH, 'var(--accent-neutral)', false);
+                requestAnimationFrame(renderLoop);
+                
+            } else if (state.status === 'RESULT') {
+                // Persistent Result Visualization
+                if (state.scanResult.status === 'FAIL') {
+                    // Alpha masking: Darken the whole canvas
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+                    ctx.fillRect(0, 0, w, h);
+                    
+                    // Highlight target box by drawing original video feed back (still frame)
+                    ctx.drawImage(video, boxX, boxY, boxW, boxH, boxX, boxY, boxW, boxH);
+                    
+                    // Draw red glowing bounding boxes exactly over failing blocks
+                    drawTargetBox(boxX, boxY, boxW, boxH, 'var(--accent-neutral)', false);
+                    drawAnomalies(boxX, boxY, boxW, boxH);
+                } else {
+                    drawTargetBox(boxX, boxY, boxW, boxH, 'var(--accent-success)', true);
+                }
+            }
+        }
+
+        /**
+         * Extract Grayscale Pixel Intensity for each of the 400 (20x20) blocks
+         */
+        function extractGridIntensities(imageData, width, height) {
+            const data = imageData.data;
+            const blockW = width / CONFIG.gridSize;
+            const blockH = height / CONFIG.gridSize;
+            
+            const numBlocks = CONFIG.gridSize * CONFIG.gridSize;
+            const blockSums = new Float64Array(numBlocks);
+            const blockCounts = new Uint32Array(numBlocks);
+
+            for (let y = 0; y < height; y++) {
+                const gridY = Math.floor(y / blockH);
+                if (gridY >= CONFIG.gridSize) continue;
+                
+                for (let x = 0; x < width; x++) {
+                    const gridX = Math.floor(x / blockW);
+                    if (gridX >= CONFIG.gridSize) continue;
+                    
+                    const index = (y * Math.floor(width) + x) * 4;
+                    // Luma formula for grayscale
+                    const gray = 0.299 * data[index] + 0.587 * data[index+1] + 0.114 * data[index+2];
+                    
+                    const blockIndex = gridY * CONFIG.gridSize + gridX;
+                    blockSums[blockIndex] += gray;
+                    blockCounts[blockIndex]++;
+                }
+            }
+
+            // Calculate average and push to time-series
+            for (let i = 0; i < numBlocks; i++) {
+                const avg = blockSums[i] / blockCounts[i];
+                state.timeSeriesData[i].push(avg);
+            }
+        }
+
+        /**
+         * 4. PURE JS FAST FOURIER TRANSFORM (Cooley-Tukey Radix-2)
          */
         function computeFFT(real, imag) {
             const n = real.length;
             
-            // Bit-reversal permutation
+            // Bit-reversal
             for (let i = 0, j = 0; i < n; i++) {
                 if (j > i) {
-                    let tempRe = real[i];
-                    real[i] = real[j];
-                    real[j] = tempRe;
-                    let tempIm = imag[i];
-                    imag[i] = imag[j];
-                    imag[j] = tempIm;
+                    let tR = real[i], tI = imag[i];
+                    real[i] = real[j]; imag[i] = imag[j];
+                    real[j] = tR; imag[j] = tI;
                 }
                 let m = n >> 1;
-                while (m >= 1 && j >= m) {
-                    j -= m;
-                    m >>= 1;
-                }
+                while (m >= 1 && j >= m) { j -= m; m >>= 1; }
                 j += m;
             }
 
-            // Cooley-Tukey calculation
+            // Butterfly calculation
             for (let size = 2; size <= n; size *= 2) {
                 const halfSize = size / 2;
                 const angle = -2 * Math.PI / size;
-                const wRe = Math.cos(angle);
-                const wIm = Math.sin(angle);
+                const wRe = Math.cos(angle), wIm = Math.sin(angle);
                 
                 for (let i = 0; i < n; i += size) {
-                    let uRe = 1;
-                    let uIm = 0;
-                    
+                    let uRe = 1, uIm = 0;
                     for (let j = 0; j < halfSize; j++) {
-                        const evenRe = real[i + j];
-                        const evenIm = imag[i + j];
-                        const oddRe = real[i + j + halfSize];
-                        const oddIm = imag[i + j + halfSize];
+                        const idx = i + j;
+                        const idxHalf = idx + halfSize;
                         
-                        const tRe = uRe * oddRe - uIm * oddIm;
-                        const tIm = uRe * oddIm + uIm * oddRe;
+                        const tRe = uRe * real[idxHalf] - uIm * imag[idxHalf];
+                        const tIm = uRe * imag[idxHalf] + uIm * real[idxHalf];
                         
-                        real[i + j] = evenRe + tRe;
-                        imag[i + j] = evenIm + tIm;
-                        real[i + j + halfSize] = evenRe - tRe;
-                        imag[i + j + halfSize] = evenIm - tIm;
+                        real[idxHalf] = real[idx] - tRe;
+                        imag[idxHalf] = imag[idx] - tIm;
+                        real[idx] += tRe;
+                        imag[idx] += tIm;
                         
                         const nextURe = uRe * wRe - uIm * wIm;
-                        const nextUIm = uRe * wIm + uIm * wRe;
+                        uIm = uRe * wIm + uIm * wRe;
                         uRe = nextURe;
-                        uIm = nextUIm;
                     }
                 }
             }
         }
 
-        /**
-         * Next Power of 2 Helper
-         */
         function nextPowerOf2(n) {
-            let count = 0;
-            if (n && !(n & (n - 1))) return n; // Already power of 2
-            while( n != 0) {
-                n >>= 1;
-                count += 1;
-            }
-            return 1 << count;
+            return Math.pow(2, Math.ceil(Math.log2(n)));
         }
 
         /**
-         * Main Analysis Logic (Signal Processing)
+         * 5. CORE MATHEMATICAL ANALYSIS (EVM & FFT)
          */
         function analyzeData() {
             state.status = 'ANALYZING';
-            sysStatus.innerText = 'ANALYZING SIGNAL...';
+            sysStatus.innerText = 'PROCESSING FFT...';
             
-            const totalFrames = state.frameCount;
-            const elapsedTimeSec = (state.frameTimestamps[totalFrames - 1] - state.frameTimestamps[0]) / 1000;
-            const actualFps = totalFrames / elapsedTimeSec;
-            
-            console.log(`Scan complete. Captured ${totalFrames} frames over ${elapsedTimeSec.toFixed(2)}s. Approx FPS: ${actualFps.toFixed(2)}`);
-            
-            const numCells = CONFIG.gridSize * CONFIG.gridSize;
-            const fftSize = nextPowerOf2(totalFrames); // Pad to power of 2
-            
-            let globalPeakFrequency = 0;
-            let globalMaxAmplitude = 0;
-            state.failingCells = [];
+            const numFrames = state.totalFramesCaptured;
+            if (numFrames < 10) {
+                alert("Scan failed: Excessive shaking prevented data collection. Please try again.");
+                resetToIdle();
+                return;
+            }
 
-            // Analyze each grid cell individually
-            for (let cell = 0; cell < numCells; cell++) {
-                const signal = state.timeSeriesData[cell];
+            // Calculate actual FPS of the successfully captured frames
+            const actualDurationSec = state.elapsedCaptureTimeMs / 1000;
+            const actualFPS = numFrames / actualDurationSec;
+            
+            // Nyquist check
+            if (actualFPS / 2 < CONFIG.freqMax) {
+                console.warn(`Nyquist limit (${(actualFPS/2).toFixed(1)}Hz) is below target max ${CONFIG.freqMax}Hz due to low camera FPS.`);
+            }
+
+            const numBlocks = CONFIG.gridSize * CONFIG.gridSize;
+            const fftSize = nextPowerOf2(numFrames);
+            
+            let globalMaxAmplitude = 0;
+            let globalPeakFrequency = 0;
+            state.failingBlocks = [];
+
+            for (let b = 0; b < numBlocks; b++) {
+                const signal = state.timeSeriesData[b];
                 
-                // 1. Calculate Mean for DC Removal (Detrending)
-                let sum = 0;
-                for (let i = 0; i < totalFrames; i++) sum += signal[i];
-                const mean = sum / totalFrames;
+                // Remove DC Offset (Mean)
+                const mean = signal.reduce((acc, val) => acc + val, 0) / numFrames;
                 
-                // 2. Prepare Real and Imaginary arrays padded to fftSize
                 const real = new Float64Array(fftSize);
                 const imag = new Float64Array(fftSize);
                 
                 for (let i = 0; i < fftSize; i++) {
-                    if (i < totalFrames) {
-                        // Apply Hanning Window to reduce spectral leakage
-                        const multiplier = 0.5 * (1 - Math.cos((2 * Math.PI * i) / (totalFrames - 1)));
-                        real[i] = (signal[i] - mean) * multiplier;
+                    if (i < numFrames) {
+                        // Apply Hanning Window to minimize spectral leakage
+                        const windowMultiplier = 0.5 * (1 - Math.cos((2 * Math.PI * i) / (numFrames - 1)));
+                        real[i] = (signal[i] - mean) * windowMultiplier;
                     } else {
-                        real[i] = 0; // Zero padding
+                        real[i] = 0; // Zero pad to power of 2
                     }
-                    imag[i] = 0;
                 }
                 
-                // 3. Execute FFT
                 computeFFT(real, imag);
                 
-                // 4. Calculate Magnitudes & find peaks within target frequency range
-                let cellMaxAmp = 0;
-                let cellPeakFreq = 0;
+                let blockMaxAmp = 0;
+                let blockPeakFreq = 0;
                 
-                // Only loop through first half (Nyquist limit)
+                // Search for peak frequency strictly inside 5Hz - 30Hz band
                 for (let i = 1; i < fftSize / 2; i++) {
-                    const frequency = i * (actualFps / fftSize);
+                    const freq = i * (actualFPS / fftSize);
                     
-                    // Filter frequencies based on config (and physical Nyquist limitation)
-                    if (frequency >= CONFIG.freqMin && frequency <= CONFIG.freqMax && frequency <= actualFps/2) {
-                        const magnitude = Math.sqrt(real[i] * real[i] + imag[i] * imag[i]);
-                        // Normalize magnitude by N
-                        const normalizedMag = magnitude / (totalFrames / 2);
+                    if (freq >= CONFIG.freqMin && freq <= CONFIG.freqMax) {
+                        // Magnitude Calculation
+                        const magnitude = Math.sqrt(real[i]**2 + imag[i]**2);
+                        // Normalize (account for zero-padding and windowing loss)
+                        const normalizedMag = (magnitude / (numFrames / 2)) * 2;
                         
-                        if (normalizedMag > cellMaxAmp) {
-                            cellMaxAmp = normalizedMag;
-                            cellPeakFreq = frequency;
+                        if (normalizedMag > blockMaxAmp) {
+                            blockMaxAmp = normalizedMag;
+                            blockPeakFreq = freq;
                         }
                     }
                 }
                 
-                // Track global maximums for logging
-                if (cellMaxAmp > globalMaxAmplitude) {
-                    globalMaxAmplitude = cellMaxAmp;
-                    globalPeakFrequency = cellPeakFreq;
+                if (blockMaxAmp > globalMaxAmplitude) {
+                    globalMaxAmplitude = blockMaxAmp;
+                    globalPeakFrequency = blockPeakFreq;
                 }
                 
-                // 5. Threshold Detection
-                if (cellMaxAmp > CONFIG.anomalyThreshold) {
-                    state.failingCells.push({
-                        index: cell,
-                        amplitude: cellMaxAmp,
-                        frequency: cellPeakFreq
+                // Flag anomalies exceeding threshold
+                if (blockMaxAmp > CONFIG.anomalyThreshold) {
+                    state.failingBlocks.push({
+                        index: b,
+                        amplitude: blockMaxAmp,
+                        frequency: blockPeakFreq
                     });
                 }
             }
 
-            // Evaluation
-            const isAnomaly = state.failingCells.length > 0;
+            const isFaulty = state.failingBlocks.length > 0;
+            
             state.scanResult = {
-                status: isAnomaly ? 'FAIL' : 'PASS',
-                peakFrequency: isAnomaly ? globalPeakFrequency.toFixed(2) : '0.00',
-                maxAmplitude: globalMaxAmplitude.toFixed(2),
-                failingCount: state.failingCells.length
+                timestamp: new Date().toISOString(),
+                status: isFaulty ? 'FAIL' : 'PASS',
+                peakFrequency: isFaulty ? globalPeakFrequency.toFixed(2) : '0.00',
+                maxAmplitude: globalMaxAmplitude.toFixed(2)
             };
 
-            logResultToDatabase(state.scanResult);
-            finalizeScanUI(isAnomaly);
+            logToDatabase(state.scanResult);
+            showResults(isFaulty);
         }
 
         /**
-         * Local Storage Logging
+         * 6. RESULTS & LOGGING
          */
-        function logResultToDatabase(result) {
+        function showResults(isFaulty) {
+            state.status = 'RESULT';
+            sysStatus.innerText = isFaulty ? 'FAULT DETECTED' : 'SYSTEM OPTIMAL';
+            sysStatus.style.color = isFaulty ? 'var(--accent-danger)' : 'var(--accent-success)';
+            
+            statusOverlay.style.display = 'block';
+            statusOverlay.style.borderColor = isFaulty ? 'var(--accent-danger)' : 'var(--accent-success)';
+            
+            if (isFaulty) {
+                statusOverlay.style.color = 'var(--accent-danger)';
+                statusOverlay.innerHTML = `⚠️ MECHANICAL FAULT DETECTED<br>Freq: ${state.scanResult.peakFrequency}Hz | Mag: ${state.scanResult.maxAmplitude}`;
+            } else {
+                statusOverlay.style.color = 'var(--accent-success)';
+                statusOverlay.innerHTML = `✓ STATUS: OPTIMAL. NO ANOMALOUS VIBRATIONS.`;
+            }
+
+            startBtn.disabled = false;
+            startBtn.innerText = "Initiate New Scan";
+        }
+
+        function logToDatabase(result) {
             const logEntry = {
-                id: Date.now(),
-                timestamp: new Date().toISOString(),
+                timestamp: result.timestamp,
                 status: result.status,
-                peakFrequencyHz: parseFloat(result.peakFrequency),
-                maxAmplitude: parseFloat(result.maxAmplitude)
+                peakFrequency: parseFloat(result.peakFrequency)
             };
 
             let logs = [];
@@ -450,152 +618,30 @@
             
             logs.push(logEntry);
             localStorage.setItem('vibration_scan_logs', JSON.stringify(logs));
-            console.log("Scan logged to local database:", logEntry);
+            console.log("Logged strictly to localStorage:", logEntry);
         }
 
         /**
-         * Frame Rendering & Capture Loop
-         */
-        function renderLoop(timestamp) {
-            if (!state.cameraStream) return;
-
-            const w = canvas.width;
-            const h = canvas.height;
-            
-            // Calculate Targeting Box Dimensions
-            const boxW = w * CONFIG.targetBoxRatio;
-            const boxH = h * CONFIG.targetBoxRatio;
-            const boxX = (w - boxW) / 2;
-            const boxY = (h - boxH) / 2;
-
-            // 1. Draw Camera Feed
-            ctx.drawImage(video, 0, 0, w, h);
-
-            if (state.status === 'SCANNING') {
-                const elapsed = timestamp - state.scanStartTime;
-                const progress = Math.min((elapsed / CONFIG.scanDurationMs) * 100, 100);
-                progressBar.style.width = `${progress}%`;
-
-                // Capture Image Data in Targeting Box for EVM/FFT Analysis
-                const frameData = ctx.getImageData(boxX, boxY, boxW, boxH);
-                extractGridIntensities(frameData, boxW, boxH);
-                
-                state.frameTimestamps.push(timestamp);
-                state.frameCount++;
-
-                // Draw Scanning Grid
-                drawGridOverlay(boxX, boxY, boxW, boxH, 'rgba(255, 255, 255, 0.2)');
-                drawTargetBox(boxX, boxY, boxW, boxH, 'var(--text-main)', false);
-
-                if (elapsed >= CONFIG.scanDurationMs) {
-                    progressBar.style.width = '0%';
-                    analyzeData();
-                } else {
-                    requestAnimationFrame(renderLoop);
-                }
-
-            } else if (state.status === 'IDLE' || state.status === 'INIT') {
-                // Draw Idle Targeting Box
-                drawTargetBox(boxX, boxY, boxW, boxH, 'var(--accent-neutral)', false);
-                requestAnimationFrame(renderLoop);
-                
-            } else if (state.status === 'RESULT') {
-                // Persistent Result Render (No further requestAnimationFrame here)
-                if (state.scanResult.status === 'FAIL') {
-                    // Darken background
-                    ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
-                    ctx.fillRect(0, 0, w, h);
-                    
-                    // Highlight the target area normally
-                    ctx.drawImage(video, boxX, boxY, boxW, boxH, boxX, boxY, boxW, boxH);
-                    
-                    // Draw red box around anomalies
-                    drawTargetBox(boxX, boxY, boxW, boxH, 'var(--accent-danger)', true);
-                    drawAnomalies(boxX, boxY, boxW, boxH);
-                } else {
-                    drawTargetBox(boxX, boxY, boxW, boxH, 'var(--accent-success)', false);
-                }
-            }
-        }
-
-        /**
-         * Extract Grayscale Intensities from the frame data for each grid block
-         */
-        function extractGridIntensities(imageData, width, height) {
-            const data = imageData.data;
-            const cellW = width / CONFIG.gridSize;
-            const cellH = height / CONFIG.gridSize;
-            
-            // Temporary accumulators for this frame
-            const cellSums = new Float64Array(CONFIG.gridSize * CONFIG.gridSize);
-            const cellCounts = new Uint32Array(CONFIG.gridSize * CONFIG.gridSize);
-
-            // Loop through all pixels in the target box
-            for (let y = 0; y < height; y++) {
-                const gridY = Math.floor(y / cellH);
-                if (gridY >= CONFIG.gridSize) continue;
-                
-                for (let x = 0; x < width; x++) {
-                    const gridX = Math.floor(x / cellW);
-                    if (gridX >= CONFIG.gridSize) continue;
-                    
-                    const index = (y * Math.floor(width) + x) * 4;
-                    const r = data[index];
-                    const g = data[index + 1];
-                    const b = data[index + 2];
-                    
-                    // Grayscale conversion (Luma)
-                    const gray = 0.299 * r + 0.587 * g + 0.114 * b;
-                    
-                    const cellIndex = gridY * CONFIG.gridSize + gridX;
-                    cellSums[cellIndex] += gray;
-                    cellCounts[cellIndex]++;
-                }
-            }
-
-            // Average and store in time-series buffer
-            for (let i = 0; i < cellSums.length; i++) {
-                const avg = cellSums[i] / cellCounts[i];
-                state.timeSeriesData[i].push(avg);
-            }
-        }
-
-        /**
-         * Canvas Drawing Helpers
+         * 7. CANVAS DRAWING HELPERS
          */
         function drawTargetBox(x, y, w, h, color, glowing) {
             ctx.strokeStyle = color;
             ctx.lineWidth = 2;
+            ctx.shadowBlur = glowing ? 15 : 0;
+            ctx.shadowColor = glowing ? color : 'transparent';
             
-            if (glowing) {
-                ctx.shadowColor = color;
-                ctx.shadowBlur = 15;
-            } else {
-                ctx.shadowBlur = 0;
-            }
-            
-            // Draw corner brackets
-            const cornerLength = 30;
+            const len = 40;
             ctx.beginPath();
-            // Top Left
-            ctx.moveTo(x, y + cornerLength);
-            ctx.lineTo(x, y);
-            ctx.lineTo(x + cornerLength, y);
-            // Top Right
-            ctx.moveTo(x + w - cornerLength, y);
-            ctx.lineTo(x + w, y);
-            ctx.lineTo(x + w, y + cornerLength);
-            // Bottom Right
-            ctx.moveTo(x + w, y + h - cornerLength);
-            ctx.lineTo(x + w, y + h);
-            ctx.lineTo(x + w - cornerLength, y + h);
-            // Bottom Left
-            ctx.moveTo(x + cornerLength, y + h);
-            ctx.lineTo(x, y + h);
-            ctx.lineTo(x, y + h - cornerLength);
+            // TL
+            ctx.moveTo(x, y + len); ctx.lineTo(x, y); ctx.lineTo(x + len, y);
+            // TR
+            ctx.moveTo(x + w - len, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w, y + len);
+            // BR
+            ctx.moveTo(x + w, y + h - len); ctx.lineTo(x + w, y + h); ctx.lineTo(x + w - len, y + h);
+            // BL
+            ctx.moveTo(x + len, y + h); ctx.lineTo(x, y + h); ctx.lineTo(x, y + h - len);
             ctx.stroke();
             
-            // Reset shadow
             ctx.shadowBlur = 0;
         }
 
@@ -608,94 +654,82 @@
             const stepY = h / CONFIG.gridSize;
             
             for (let i = 1; i < CONFIG.gridSize; i++) {
-                // Vertical lines
-                ctx.moveTo(x + i * stepX, y);
-                ctx.lineTo(x + i * stepX, y + h);
-                // Horizontal lines
-                ctx.moveTo(x, y + i * stepY);
-                ctx.lineTo(x + w, y + i * stepY);
+                ctx.moveTo(x + i * stepX, y); ctx.lineTo(x + i * stepX, y + h);
+                ctx.moveTo(x, y + i * stepY); ctx.lineTo(x + w, y + i * stepY);
             }
             ctx.stroke();
         }
 
         function drawAnomalies(x, y, w, h) {
-            const cellW = w / CONFIG.gridSize;
-            const cellH = h / CONFIG.gridSize;
+            const blockW = w / CONFIG.gridSize;
+            const blockH = h / CONFIG.gridSize;
             
             ctx.strokeStyle = 'var(--accent-danger)';
             ctx.lineWidth = 3;
             ctx.shadowColor = 'var(--accent-danger)';
-            ctx.shadowBlur = 10;
-            ctx.fillStyle = 'rgba(231, 76, 60, 0.3)';
+            ctx.shadowBlur = 12;
             
-            for (const cell of state.failingCells) {
-                const gridX = cell.index % CONFIG.gridSize;
-                const gridY = Math.floor(cell.index / CONFIG.gridSize);
+            for (const block of state.failingBlocks) {
+                const gridX = block.index % CONFIG.gridSize;
+                const gridY = Math.floor(block.index / CONFIG.gridSize);
                 
-                const rectX = x + (gridX * cellW);
-                const rectY = y + (gridY * cellH);
+                const rectX = x + (gridX * blockW);
+                const rectY = y + (gridY * blockH);
                 
-                ctx.fillRect(rectX, rectY, cellW, cellH);
-                ctx.strokeRect(rectX, rectY, cellW, cellH);
+                // Draw glowing RED BOUNDING BOX strictly over the specific grid block
+                ctx.strokeRect(rectX, rectY, blockW, blockH);
                 
-                // Draw crosshair center
+                // Draw inner crosshair for precision feel
                 ctx.beginPath();
-                ctx.moveTo(rectX + cellW/2, rectY + cellH/2 - 5);
-                ctx.lineTo(rectX + cellW/2, rectY + cellH/2 + 5);
-                ctx.moveTo(rectX + cellW/2 - 5, rectY + cellH/2);
-                ctx.lineTo(rectX + cellW/2 + 5, rectY + cellH/2);
+                ctx.moveTo(rectX + blockW/2, rectY + blockH/2 - 6);
+                ctx.lineTo(rectX + blockW/2, rectY + blockH/2 + 6);
+                ctx.moveTo(rectX + blockW/2 - 6, rectY + blockH/2);
+                ctx.lineTo(rectX + blockW/2 + 6, rectY + blockH/2);
                 ctx.stroke();
             }
             ctx.shadowBlur = 0;
         }
 
+        function resetToIdle() {
+            state.status = 'IDLE';
+            sysStatus.innerText = 'READY';
+            sysStatus.style.color = 'var(--text-main)';
+            startBtn.disabled = false;
+            statusOverlay.style.display = 'none';
+            shakeWarning.style.display = 'none';
+            progressBar.style.width = '0%';
+        }
+
         /**
-         * UI State Transitions
+         * EVENT LISTENERS
          */
-        function startScan() {
+        startBtn.addEventListener('click', async () => {
             if (state.status !== 'IDLE' && state.status !== 'RESULT') return;
             
-            // Reset state
+            // On first interaction, request DeviceMotion permissions if required (iOS)
+            await requestMotionPermission();
+
+            // Reset and start
             state.status = 'SCANNING';
             sysStatus.innerText = 'SCAN IN PROGRESS...';
+            sysStatus.style.color = 'var(--accent-scan)';
             startBtn.disabled = true;
             statusOverlay.style.display = 'none';
             
-            state.frameCount = 0;
-            state.frameTimestamps = [];
+            state.totalFramesCaptured = 0;
+            state.elapsedCaptureTimeMs = 0;
+            state.lastFrameTimestamp = 0;
             state.scanStartTime = performance.now();
             
-            // Initialize empty arrays for time series data
-            const numCells = CONFIG.gridSize * CONFIG.gridSize;
-            state.timeSeriesData = Array.from({ length: numCells }, () => []);
+            // Initialize 400 empty arrays for block data
+            const numBlocks = CONFIG.gridSize * CONFIG.gridSize;
+            state.timeSeriesData = Array.from({ length: numBlocks }, () => []);
             
-            // Re-ignite animation frame if coming from RESULT
+            // Re-trigger loop if coming from Result static state
             requestAnimationFrame(renderLoop);
-        }
+        });
 
-        function finalizeScanUI(isAnomaly) {
-            state.status = 'RESULT';
-            sysStatus.innerText = isAnomaly ? 'ANOMALY DETECTED' : 'SYSTEM OPTIMAL';
-            sysStatus.style.color = isAnomaly ? 'var(--accent-danger)' : 'var(--accent-success)';
-            
-            statusOverlay.style.display = 'block';
-            statusOverlay.style.color = isAnomaly ? 'var(--accent-danger)' : 'var(--accent-success)';
-            statusOverlay.style.borderColor = isAnomaly ? 'var(--accent-danger)' : 'var(--accent-success)';
-            
-            if (isAnomaly) {
-                statusOverlay.innerHTML = `⚠️ CRITICAL ANOMALY DETECTED IN ISOLATED REGION<br>Peak Hz: ${state.scanResult.peakFrequency} | Mag: ${state.scanResult.maxAmplitude}`;
-            } else {
-                statusOverlay.innerHTML = `✓ STATUS: OPTIMAL<br>No anomalous vibrations detected.`;
-            }
-
-            startBtn.disabled = false;
-            startBtn.innerText = "Initiate New Scan";
-        }
-
-        /**
-         * Event Listeners & Bootstrap
-         */
-        startBtn.addEventListener('click', startScan);
+        // Initialize on Load
         window.addEventListener('load', initCamera);
 
     </script>
