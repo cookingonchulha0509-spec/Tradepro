@@ -3,76 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Appliance Vibration Diagnostic Tool</title>
+    <title>Advanced Appliance Diagnostic Scanner</title>
     <style>
-        /* Stealth UI - Matte Black & Charcoal */
+        /* 
+         * STRICT UI/UX DESIGN RULES 
+         * Stealth, military-grade, professional.
+         * Matte Black/Charcoal. NO NEON. NO GLOW.
+         */
         :root {
-            --bg-color: #121212;
-            --panel-bg: #1c1c1c;
-            --text-main: #e0e0e0;
-            --text-muted: #777777;
-            --accent-neutral: #444444;
-            --accent-scan: #3498db;
-            --accent-success: #2ecc71;
-            --accent-danger: #e74c3c;
-            --accent-warning: #f1c40f;
-            --font-stack: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            --font-mono: 'SF Mono', Consolas, 'Liberation Mono', monospace;
+            --bg-base: #0f1011;
+            --bg-panel: #1a1b1d;
+            --text-main: #d1d5db;
+            --text-muted: #6b7280;
+            --border-matte: #374151;
+            
+            /* Specific State Matte Colors */
+            --color-state-1: #4b5563; /* Matte Dark Grey */
+            --color-state-2: #1e3a5f; /* Deep Matte Blue */
+            --color-state-3: #9a4d1c; /* Matte Orange */
+            --color-state-4: #a16b00; /* Solid Amber */
+            --color-state-5: #7b1e1e; /* Deep Matte Red */
+            --color-optimal: #2b5f3a; /* Muted Green */
+
+            --font-main: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            background-color: var(--bg-color);
+            background-color: var(--bg-base);
             color: var(--text-main);
-            font-family: var(--font-stack);
+            font-family: var(--font-main);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
+            height: 100vh;
             overflow: hidden;
             user-select: none;
         }
 
-        #header {
+        header {
             position: absolute;
-            top: 25px;
-            left: 25px;
+            top: 20px;
+            left: 24px;
             z-index: 10;
         }
 
-        #header h1 {
-            font-size: 1.1rem;
+        header h1 {
+            font-size: 14px;
             font-weight: 700;
-            letter-spacing: 1.5px;
+            letter-spacing: 1px;
             text-transform: uppercase;
+            color: #f3f4f6;
         }
 
-        #header p {
+        header p {
             font-family: var(--font-mono);
-            font-size: 0.75rem;
+            font-size: 11px;
             color: var(--text-muted);
-            margin-top: 5px;
+            margin-top: 4px;
         }
 
-        #scanner-container {
+        /* Video / Canvas Container */
+        #scanner-viewport {
             position: relative;
             width: 100%;
-            max-width: 900px;
+            max-width: 800px;
             aspect-ratio: 4/3;
             background-color: #000;
-            border: 1px solid var(--accent-neutral);
-            border-radius: 4px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.8);
+            border: 2px solid var(--border-matte);
             overflow: hidden;
         }
 
-        video { display: none; } /* Hidden, drawn directly to canvas */
+        video {
+            display: none; /* Drawn strictly to canvas */
+        }
 
         canvas {
             display: block;
@@ -87,199 +94,256 @@
             top: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(231, 76, 60, 0.9);
+            background-color: var(--color-state-3);
             color: #fff;
-            padding: 8px 16px;
-            border-radius: 2px;
+            padding: 6px 14px;
             font-family: var(--font-mono);
-            font-size: 0.85rem;
+            font-size: 11px;
             font-weight: bold;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
             display: none;
             z-index: 20;
-            box-shadow: 0 0 10px rgba(231, 76, 60, 0.5);
         }
 
-        #status-overlay {
+        #sensor-hud {
             position: absolute;
-            bottom: 25px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(28, 28, 28, 0.95);
-            padding: 15px 25px;
-            border: 1px solid var(--accent-neutral);
-            border-radius: 2px;
+            top: 15px;
+            right: 15px;
             font-family: var(--font-mono);
-            font-size: 0.9rem;
-            text-align: center;
-            display: none;
-            z-index: 20;
-            backdrop-filter: blur(5px);
+            font-size: 10px;
+            color: var(--text-muted);
+            text-align: right;
+            z-index: 10;
         }
 
-        #progress-bar {
+        #progress-bar-container {
             position: absolute;
             bottom: 0;
             left: 0;
-            height: 5px;
-            background-color: var(--accent-scan);
-            width: 0%;
-            transition: width 0.1s linear;
+            width: 100%;
+            height: 4px;
+            background-color: var(--bg-panel);
             z-index: 15;
         }
 
-        .scanline {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
+        #progress-bar {
             height: 100%;
-            background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.15) 50%);
-            background-size: 100% 4px;
-            pointer-events: none;
-            z-index: 5;
+            width: 0%;
+            background-color: var(--text-muted);
+            transition: width 0.1s linear;
         }
 
+        /* Result Diagnostics Overlay */
+        #diagnostic-result {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--bg-panel);
+            border: 2px solid var(--border-matte);
+            padding: 16px 24px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            z-index: 30;
+            min-width: 350px;
+        }
+
+        .tick-icon {
+            width: 24px;
+            height: 24px;
+            fill: none;
+            stroke: #fff;
+            stroke-width: 2.5;
+            stroke-linecap: square;
+            stroke-linejoin: miter;
+        }
+
+        #diagnostic-text {
+            font-size: 13px;
+            font-weight: 600;
+            color: #fff;
+            letter-spacing: 0.5px;
+        }
+
+        /* Controls */
         #controls {
-            margin-top: 30px;
+            margin-top: 32px;
             z-index: 10;
         }
 
         button {
-            background-color: var(--panel-bg);
+            background-color: var(--bg-panel);
             color: var(--text-main);
-            border: 1px solid var(--text-muted);
-            padding: 14px 28px;
-            font-size: 0.95rem;
-            font-family: var(--font-stack);
+            border: 1px solid var(--border-matte);
+            padding: 12px 24px;
+            font-size: 12px;
             font-weight: 600;
+            font-family: var(--font-main);
+            letter-spacing: 1px;
             text-transform: uppercase;
-            letter-spacing: 1.5px;
-            border-radius: 2px;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: background-color 0.2s;
         }
 
         button:hover:not(:disabled) {
-            background-color: #2a2a2a;
-            border-color: var(--text-main);
-            box-shadow: 0 0 10px rgba(255,255,255,0.1);
+            background-color: var(--border-matte);
         }
 
         button:disabled {
-            opacity: 0.4;
+            opacity: 0.5;
             cursor: not-allowed;
         }
     </style>
 </head>
 <body>
 
-    <div id="header">
-        <h1>Appliance Diagnostic Scanner</h1>
-        <p>TARGET: 5Hz - 30Hz | GRID: 20x20 | STATUS: <span id="sys-status">INIT</span></p>
-    </div>
+    <header>
+        <h1>Appliance Multi-Sensor Scanner</h1>
+        <p>OPTICAL EVM | ACOUSTIC | EMF | ACCEL</p>
+    </header>
 
-    <div id="scanner-container">
-        <video id="camera-feed" autoplay playsinline muted></video>
-        <canvas id="main-canvas"></canvas>
-        <div class="scanline"></div>
-        <div id="progress-bar"></div>
-        <div id="shake-warning">⚠️ HOLD DEVICE STEADY - DATA PAUSED</div>
-        <div id="status-overlay"></div>
+    <div id="scanner-viewport">
+        <video id="vid-feed" autoplay playsinline muted></video>
+        <canvas id="render-canvas"></canvas>
+        
+        <div id="shake-warning">OPTICAL ANCHOR LOST: PAUSING SCAN</div>
+        <div id="sensor-hud">
+            MIC: <span id="hud-mic">STANDBY</span><br>
+            EMF: <span id="hud-emf">0.0 µT</span>
+        </div>
+        
+        <div id="progress-bar-container"><div id="progress-bar"></div></div>
+
+        <!-- Matte result overlay strictly rendering on completion -->
+        <div id="diagnostic-result">
+            <svg class="tick-icon" viewBox="0 0 24 24">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <div id="diagnostic-text"></div>
+        </div>
     </div>
 
     <div id="controls">
-        <button id="start-btn" disabled>Start Diagnostic Scan</button>
+        <button id="btn-scan">Start Multi-Sensor Scan</button>
     </div>
 
     <script>
         /**
-         * CONFIGURATION
+         * ==========================================
+         * CONFIGURATION & SYSTEM THRESHOLDS
+         * Heavily commented for manual tuning.
+         * ==========================================
          */
         const CONFIG = {
-            scanDurationMs: 7000,         // 7-second analysis window
-            gridSize: 20,                 // 20x20 grid (400 blocks)
-            targetBoxRatio: 0.6,          // Targeting box takes up 60% of canvas
-            freqMin: 5,                   // Min frequency (Hz) for home appliances
-            freqMax: 30,                  // Max frequency (Hz) for home appliances
-            anomalyThreshold: 2.0,        // FFT Amplitude threshold for anomaly detection
-            shakeThreshold: 1.8           // m/s^2 delta threshold to detect hand shake
+            scanDuration: 7000,          // 7-second continuous scan
+            gridSize: 20,                // 20x20 analysis grid (400 blocks)
+            targetRatio: 0.5,            // Targeting box takes up 50% of viewport
+            
+            // Optical EVM Thresholds
+            freqMin: 5,                  // Target minimum vibration Hz
+            freqMax: 30,                 // Target maximum vibration Hz
+            evmStaticLimit: 1.5,         // Below this magnitude = "NOT MOVING" (0Hz)
+            evmBaseLimit: 4.5,           // Normal baseline vibration threshold
+            evmCriticalLimit: 12.0,      // Massive amplitude spike threshold
+            
+            // Web Audio Thresholds (Amplitudes 0-255)
+            humThreshold: 140,           // Sustained 50/60Hz electrical hum threshold
+            knockThreshold: 85,          // Variance/Peaks in 100-400Hz (clicking)
+            whineThreshold: 110,         // Amplitude in 2-4kHz range (bearing wear)
+            grindThreshold: 90,          // Broadband baseline elevation across all bins
+            
+            // Sensors
+            emfSpikeThreshold: 45.0,     // Microteslas (µT) spike logic for Locked Rotor
+            shakeThreshold: 2.5          // Acceleration delta (m/s²) to trigger optical anchoring
         };
 
         const state = {
-            status: 'INIT', // INIT, IDLE, SCANNING, RESULT
+            status: 'IDLE', // IDLE, SCANNING, RESULT
             stream: null,
+            audioCtx: null,
+            analyser: null,
+            magSensor: null,
+            
+            // Tracking Variables
             scanStartTime: 0,
+            frameCount: 0,
+            elapsedTimeMs: 0,
+            lastTimestamp: 0,
+            lastFrameData: null,
             
-            // Frame tracking
-            totalFramesCaptured: 0,
-            elapsedCaptureTimeMs: 0,
-            lastFrameTimestamp: 0,
-            
-            // 2D Array: timeSeriesData[blockIndex][frameIndex]
-            timeSeriesData: [], 
-            
-            // Device Motion
+            // Anti-Shake
             isShaking: false,
             lastAccel: { x: null, y: null, z: null },
+
+            // Time-Series Buffers
+            evmBuffer: [],    // 2D Array: [400 blocks][frames]
+            audioBuffer: [],  // Array of FFT arrays per frame
+            emfBuffer: [],    // Array of µT readings
             
-            // Results
-            failingBlocks: [],
-            scanResult: null
+            // Target Result
+            resultData: {}
         };
 
-        // DOM Elements
-        const video = document.getElementById('camera-feed');
-        const canvas = document.getElementById('main-canvas');
+        // DOM Pointers
+        const video = document.getElementById('vid-feed');
+        const canvas = document.getElementById('render-canvas');
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        const startBtn = document.getElementById('start-btn');
-        const statusOverlay = document.getElementById('status-overlay');
+        const btnScan = document.getElementById('btn-scan');
         const shakeWarning = document.getElementById('shake-warning');
-        const sysStatus = document.getElementById('sys-status');
+        const hudMic = document.getElementById('hud-mic');
+        const hudEmf = document.getElementById('hud-emf');
         const progressBar = document.getElementById('progress-bar');
+        const diagResult = document.getElementById('diagnostic-result');
+        const diagText = document.getElementById('diagnostic-text');
 
         /**
-         * 1. WEBRTC CAMERA SETUP
+         * ==========================================
+         * HARDWARE SENSOR INITIALIZATION
+         * ==========================================
          */
-        async function initCamera() {
+        async function initSensors() {
             try {
-                const constraints = {
-                    video: {
-                        facingMode: 'environment', // Rear camera
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 },
-                        frameRate: { ideal: 60 } // Request high framerate for better Nyquist limit
-                    },
-                    audio: false
-                };
-                
-                const stream = await navigator.mediaDevices.getUserMedia(constraints);
-                video.srcObject = stream;
-                state.stream = stream;
+                // 1. WebRTC Camera
+                const vidConstraints = { video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false };
+                state.stream = await navigator.mediaDevices.getUserMedia(vidConstraints);
+                video.srcObject = state.stream;
                 
                 video.onloadedmetadata = () => {
                     video.play();
                     canvas.width = video.videoWidth;
                     canvas.height = video.videoHeight;
-                    
-                    state.status = 'IDLE';
-                    sysStatus.innerText = 'READY';
-                    startBtn.disabled = false;
-                    
                     requestAnimationFrame(renderLoop);
                 };
             } catch (err) {
-                console.error("Camera access error:", err);
-                sysStatus.innerText = 'CAMERA ERROR';
-                sysStatus.style.color = 'var(--accent-danger)';
-                alert("Camera permission is required to analyze vibrations.");
+                console.error("Camera access failed:", err);
+                alert("Camera permission is required.");
+            }
+
+            // 2. Audio Context (Needs user gesture - handled in startScan)
+            // 3. Magnetometer (EMF)
+            try {
+                if ('Magnetometer' in window) {
+                    // Requires secure context and feature policy
+                    state.magSensor = new Magnetometer({ frequency: 10 });
+                    state.magSensor.start();
+                } else {
+                    console.warn("Magnetometer API not supported on this device.");
+                }
+            } catch (err) {
+                console.warn("Magnetometer initialization failed.", err);
+            }
+
+            // 4. DeviceMotion (Anti-Shake / Optical Anchoring)
+            // iOS 13+ requires explicit permission request
+            if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+                // We will request this on button click
+            } else {
+                window.addEventListener('devicemotion', handleMotion);
             }
         }
 
-        /**
-         * 2. ANTI-SHAKE DEVICE MOTION TRACKING
-         * We measure the delta of acceleration (including gravity) to isolate hand-shakes.
-         */
+        // Calculate delta acceleration to identify hand shakes
         function handleMotion(event) {
             const acc = event.accelerationIncludingGravity || event.acceleration;
             if (!acc || acc.x === null) return;
@@ -288,156 +352,132 @@
                 const dx = acc.x - state.lastAccel.x;
                 const dy = acc.y - state.lastAccel.y;
                 const dz = acc.z - state.lastAccel.z;
-                
-                // Calculate magnitude of acceleration delta
                 const delta = Math.sqrt(dx*dx + dy*dy + dz*dz);
                 
-                if (delta > CONFIG.shakeThreshold) {
-                    state.isShaking = true;
-                } else {
-                    state.isShaking = false;
-                }
+                state.isShaking = (delta > CONFIG.shakeThreshold);
             }
             state.lastAccel = { x: acc.x, y: acc.y, z: acc.z };
         }
 
-        // Handle iOS 13+ permission requirements for DeviceMotion
-        async function requestMotionPermission() {
-            if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
-                try {
-                    const permission = await DeviceMotionEvent.requestPermission();
-                    if (permission === 'granted') {
-                        window.addEventListener('devicemotion', handleMotion);
-                    }
-                } catch (e) {
-                    console.error("DeviceMotion permission denied:", e);
-                }
-            } else {
-                window.addEventListener('devicemotion', handleMotion);
-            }
-        }
-
         /**
-         * 3. RENDER & DATA CAPTURE LOOP
+         * ==========================================
+         * RENDER & CAPTURE LOOP
+         * ==========================================
          */
         function renderLoop(timestamp) {
             if (!state.stream) return;
 
             const w = canvas.width;
             const h = canvas.height;
-            
-            // Targeting box dimensions
-            const boxW = w * CONFIG.targetBoxRatio;
-            const boxH = h * CONFIG.targetBoxRatio;
+            const boxW = w * CONFIG.targetRatio;
+            const boxH = h * CONFIG.targetRatio;
             const boxX = (w - boxW) / 2;
             const boxY = (h - boxH) / 2;
 
-            // Draw underlying video frame
-            ctx.drawImage(video, 0, 0, w, h);
+            if (state.status === 'IDLE') {
+                ctx.drawImage(video, 0, 0, w, h);
+                drawMatteGrid(boxX, boxY, boxW, boxH, 'rgba(107, 114, 128, 0.4)'); // Matte grey targeting
+                requestAnimationFrame(renderLoop);
+                return;
+            }
 
             if (state.status === 'SCANNING') {
-                const totalElapsedMs = timestamp - state.scanStartTime;
-                const progress = Math.min((totalElapsedMs / CONFIG.scanDurationMs) * 100, 100);
-                progressBar.style.width = `${progress}%`;
+                ctx.drawImage(video, 0, 0, w, h);
+                state.lastFrameData = canvas; // Cache for freeze frame
 
-                // Anti-Shake Logic
+                const totalElapsed = timestamp - state.scanStartTime;
+                progressBar.style.width = Math.min((totalElapsed / CONFIG.scanDuration) * 100, 100) + '%';
+
+                // Real-time EMF Update
+                let currentEMF = 0;
+                if (state.magSensor && state.magSensor.x) {
+                    currentEMF = Math.sqrt(state.magSensor.x**2 + state.magSensor.y**2 + state.magSensor.z**2);
+                    hudEmf.innerText = currentEMF.toFixed(1) + ' µT';
+                }
+
                 if (state.isShaking) {
                     shakeWarning.style.display = 'block';
-                    // PAUSE pixel data collection for this frame (do not extract or push data)
+                    // PAUSE PIXEL DATA COLLECTION (Optical Anchoring)
                 } else {
                     shakeWarning.style.display = 'none';
                     
-                    // Collect Frame Data
+                    // 1. Process Optical Frame Data
                     const frameData = ctx.getImageData(boxX, boxY, boxW, boxH);
-                    extractGridIntensities(frameData, boxW, boxH);
+                    extractLumaGrid(frameData, boxW, boxH);
                     
-                    if (state.lastFrameTimestamp !== 0) {
-                        state.elapsedCaptureTimeMs += (timestamp - state.lastFrameTimestamp);
+                    // 2. Process Audio Data
+                    if (state.analyser) {
+                        const freqData = new Uint8Array(state.analyser.frequencyBinCount);
+                        state.analyser.getByteFrequencyData(freqData);
+                        state.audioBuffer.push(freqData);
+                        
+                        // Simple HUD visualizer max volume
+                        const maxVol = Math.max(...freqData);
+                        hudMic.innerText = maxVol > 10 ? 'ACTIVE' : 'IDLE';
                     }
-                    state.lastFrameTimestamp = timestamp;
-                    state.totalFramesCaptured++;
+
+                    // 3. Process EMF Data
+                    state.emfBuffer.push(currentEMF);
+
+                    if (state.lastTimestamp !== 0) {
+                        state.elapsedTimeMs += (timestamp - state.lastTimestamp);
+                    }
+                    state.lastTimestamp = timestamp;
+                    state.frameCount++;
                 }
 
-                // Visual Overlays during scan
-                drawGridOverlay(boxX, boxY, boxW, boxH, 'rgba(255, 255, 255, 0.15)');
-                drawTargetBox(boxX, boxY, boxW, boxH, 'var(--accent-scan)', false);
+                drawMatteGrid(boxX, boxY, boxW, boxH, 'rgba(154, 77, 28, 0.4)'); // Scanning active color (muted)
 
-                // Check for completion
-                if (totalElapsedMs >= CONFIG.scanDurationMs) {
+                if (totalElapsed >= CONFIG.scanDuration) {
                     progressBar.style.width = '0%';
                     shakeWarning.style.display = 'none';
-                    analyzeData();
+                    state.status = 'ANALYZING';
+                    analyzeSensorFusionData(boxX, boxY, boxW, boxH);
                 } else {
                     requestAnimationFrame(renderLoop);
                 }
-
-            } else if (state.status === 'IDLE' || state.status === 'INIT') {
-                drawTargetBox(boxX, boxY, boxW, boxH, 'var(--accent-neutral)', false);
-                requestAnimationFrame(renderLoop);
-                
-            } else if (state.status === 'RESULT') {
-                // Persistent Result Visualization
-                if (state.scanResult.status === 'FAIL') {
-                    // Alpha masking: Darken the whole canvas
-                    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-                    ctx.fillRect(0, 0, w, h);
-                    
-                    // Highlight target box by drawing original video feed back (still frame)
-                    ctx.drawImage(video, boxX, boxY, boxW, boxH, boxX, boxY, boxW, boxH);
-                    
-                    // Draw red glowing bounding boxes exactly over failing blocks
-                    drawTargetBox(boxX, boxY, boxW, boxH, 'var(--accent-neutral)', false);
-                    drawAnomalies(boxX, boxY, boxW, boxH);
-                } else {
-                    drawTargetBox(boxX, boxY, boxW, boxH, 'var(--accent-success)', true);
-                }
             }
         }
 
-        /**
-         * Extract Grayscale Pixel Intensity for each of the 400 (20x20) blocks
-         */
-        function extractGridIntensities(imageData, width, height) {
-            const data = imageData.data;
-            const blockW = width / CONFIG.gridSize;
-            const blockH = height / CONFIG.gridSize;
-            
+        // Grayscale (Luma) Extraction for EVM
+        function extractLumaGrid(imgData, w, h) {
+            const data = imgData.data;
+            const bW = w / CONFIG.gridSize;
+            const bH = h / CONFIG.gridSize;
             const numBlocks = CONFIG.gridSize * CONFIG.gridSize;
-            const blockSums = new Float64Array(numBlocks);
-            const blockCounts = new Uint32Array(numBlocks);
+            
+            const sums = new Float64Array(numBlocks);
+            const counts = new Uint32Array(numBlocks);
 
-            for (let y = 0; y < height; y++) {
-                const gridY = Math.floor(y / blockH);
-                if (gridY >= CONFIG.gridSize) continue;
-                
-                for (let x = 0; x < width; x++) {
-                    const gridX = Math.floor(x / blockW);
-                    if (gridX >= CONFIG.gridSize) continue;
+            for (let y = 0; y < h; y++) {
+                const gy = Math.floor(y / bH);
+                if (gy >= CONFIG.gridSize) continue;
+                for (let x = 0; x < w; x++) {
+                    const gx = Math.floor(x / bW);
+                    if (gx >= CONFIG.gridSize) continue;
                     
-                    const index = (y * Math.floor(width) + x) * 4;
-                    // Luma formula for grayscale
-                    const gray = 0.299 * data[index] + 0.587 * data[index+1] + 0.114 * data[index+2];
+                    const idx = (y * Math.floor(w) + x) * 4;
+                    // Luma formula
+                    const luma = 0.299 * data[idx] + 0.587 * data[idx+1] + 0.114 * data[idx+2];
                     
-                    const blockIndex = gridY * CONFIG.gridSize + gridX;
-                    blockSums[blockIndex] += gray;
-                    blockCounts[blockIndex]++;
+                    const blockIdx = gy * CONFIG.gridSize + gx;
+                    sums[blockIdx] += luma;
+                    counts[blockIdx]++;
                 }
             }
 
-            // Calculate average and push to time-series
             for (let i = 0; i < numBlocks; i++) {
-                const avg = blockSums[i] / blockCounts[i];
-                state.timeSeriesData[i].push(avg);
+                state.evmBuffer[i].push(sums[i] / counts[i]);
             }
         }
 
         /**
-         * 4. PURE JS FAST FOURIER TRANSFORM (Cooley-Tukey Radix-2)
+         * ==========================================
+         * PURE JS MATHEMATICS (FFT)
+         * ==========================================
          */
         function computeFFT(real, imag) {
             const n = real.length;
-            
-            // Bit-reversal
             for (let i = 0, j = 0; i < n; i++) {
                 if (j > i) {
                     let tR = real[i], tI = imag[i];
@@ -449,289 +489,300 @@
                 j += m;
             }
 
-            // Butterfly calculation
             for (let size = 2; size <= n; size *= 2) {
-                const halfSize = size / 2;
+                const half = size / 2;
                 const angle = -2 * Math.PI / size;
                 const wRe = Math.cos(angle), wIm = Math.sin(angle);
-                
                 for (let i = 0; i < n; i += size) {
                     let uRe = 1, uIm = 0;
-                    for (let j = 0; j < halfSize; j++) {
-                        const idx = i + j;
-                        const idxHalf = idx + halfSize;
+                    for (let j = 0; j < half; j++) {
+                        const id = i + j;
+                        const idH = id + half;
+                        const tRe = uRe * real[idH] - uIm * imag[idH];
+                        const tIm = uRe * imag[idH] + uIm * real[idH];
                         
-                        const tRe = uRe * real[idxHalf] - uIm * imag[idxHalf];
-                        const tIm = uRe * imag[idxHalf] + uIm * real[idxHalf];
+                        real[idH] = real[id] - tRe;
+                        imag[idH] = imag[id] - tIm;
+                        real[id] += tRe;
+                        imag[id] += tIm;
                         
-                        real[idxHalf] = real[idx] - tRe;
-                        imag[idxHalf] = imag[idx] - tIm;
-                        real[idx] += tRe;
-                        imag[idx] += tIm;
-                        
-                        const nextURe = uRe * wRe - uIm * wIm;
+                        const nRe = uRe * wRe - uIm * wIm;
                         uIm = uRe * wIm + uIm * wRe;
-                        uRe = nextURe;
+                        uRe = nRe;
                     }
                 }
             }
         }
 
-        function nextPowerOf2(n) {
-            return Math.pow(2, Math.ceil(Math.log2(n)));
-        }
+        function nextPow2(n) { return Math.pow(2, Math.ceil(Math.log2(n))); }
 
         /**
-         * 5. CORE MATHEMATICAL ANALYSIS (EVM & FFT)
+         * ==========================================
+         * SENSOR FUSION & DIAGNOSTIC LOGIC
+         * Mapping to exact states as requested.
+         * ==========================================
          */
-        function analyzeData() {
-            state.status = 'ANALYZING';
-            sysStatus.innerText = 'PROCESSING FFT...';
-            
-            const numFrames = state.totalFramesCaptured;
-            if (numFrames < 10) {
-                alert("Scan failed: Excessive shaking prevented data collection. Please try again.");
-                resetToIdle();
+        function analyzeSensorFusionData(boxX, boxY, boxW, boxH) {
+            const numFrames = state.frameCount;
+            if (numFrames < 20) {
+                alert("Scan failed: excessive shaking.");
+                resetScan();
                 return;
             }
 
-            // Calculate actual FPS of the successfully captured frames
-            const actualDurationSec = state.elapsedCaptureTimeMs / 1000;
-            const actualFPS = numFrames / actualDurationSec;
-            
-            // Nyquist check
-            if (actualFPS / 2 < CONFIG.freqMax) {
-                console.warn(`Nyquist limit (${(actualFPS/2).toFixed(1)}Hz) is below target max ${CONFIG.freqMax}Hz due to low camera FPS.`);
-            }
-
+            const actualFps = numFrames / (state.elapsedTimeMs / 1000);
             const numBlocks = CONFIG.gridSize * CONFIG.gridSize;
-            const fftSize = nextPowerOf2(numFrames);
-            
-            let globalMaxAmplitude = 0;
-            let globalPeakFrequency = 0;
-            state.failingBlocks = [];
+            const fftSize = nextPow2(numFrames);
 
+            // --- 1. OPTICAL EVM ANALYSIS ---
+            let maxGlobalAmp = 0;
+            let targetBlock = Math.floor(numBlocks / 2); // default center
+            
             for (let b = 0; b < numBlocks; b++) {
-                const signal = state.timeSeriesData[b];
-                
-                // Remove DC Offset (Mean)
-                const mean = signal.reduce((acc, val) => acc + val, 0) / numFrames;
-                
+                const sig = state.evmBuffer[b];
+                const mean = sig.reduce((a, v) => a + v, 0) / numFrames;
                 const real = new Float64Array(fftSize);
                 const imag = new Float64Array(fftSize);
                 
                 for (let i = 0; i < fftSize; i++) {
                     if (i < numFrames) {
-                        // Apply Hanning Window to minimize spectral leakage
-                        const windowMultiplier = 0.5 * (1 - Math.cos((2 * Math.PI * i) / (numFrames - 1)));
-                        real[i] = (signal[i] - mean) * windowMultiplier;
-                    } else {
-                        real[i] = 0; // Zero pad to power of 2
+                        // Hanning Window
+                        real[i] = (sig[i] - mean) * (0.5 * (1 - Math.cos(2*Math.PI*i/(numFrames-1))));
                     }
                 }
                 
                 computeFFT(real, imag);
                 
-                let blockMaxAmp = 0;
-                let blockPeakFreq = 0;
-                
-                // Search for peak frequency strictly inside 5Hz - 30Hz band
+                let blockMax = 0;
                 for (let i = 1; i < fftSize / 2; i++) {
-                    const freq = i * (actualFPS / fftSize);
-                    
-                    if (freq >= CONFIG.freqMin && freq <= CONFIG.freqMax) {
-                        // Magnitude Calculation
-                        const magnitude = Math.sqrt(real[i]**2 + imag[i]**2);
-                        // Normalize (account for zero-padding and windowing loss)
-                        const normalizedMag = (magnitude / (numFrames / 2)) * 2;
-                        
-                        if (normalizedMag > blockMaxAmp) {
-                            blockMaxAmp = normalizedMag;
-                            blockPeakFreq = freq;
-                        }
+                    const f = i * (actualFps / fftSize);
+                    if (f >= CONFIG.freqMin && f <= CONFIG.freqMax) {
+                        const mag = Math.sqrt(real[i]**2 + imag[i]**2) / (numFrames/2) * 2;
+                        if (mag > blockMax) blockMax = mag;
                     }
                 }
                 
-                if (blockMaxAmp > globalMaxAmplitude) {
-                    globalMaxAmplitude = blockMaxAmp;
-                    globalPeakFrequency = blockPeakFreq;
+                if (blockMax > maxGlobalAmp) {
+                    maxGlobalAmp = blockMax;
+                    targetBlock = b;
+                }
+            }
+
+            // --- 2. AUDIO ANALYSIS (Web Audio API) ---
+            // Analyser setup: sample rate usually 44100 or 48000. fftSize=2048. Bin ~ 21.5Hz
+            let bin50_60 = 0;   // hum
+            let bin100_400 = 0; // knock/click
+            let binHigh = 0;    // whine
+            let totalAmp = 0;   // grind (broadband)
+
+            if (state.audioBuffer.length > 0) {
+                const audFrames = state.audioBuffer.length;
+                const binCount = state.analyser.frequencyBinCount;
+                const binHz = state.audioCtx.sampleRate / state.analyser.fftSize;
+
+                let humSum = 0, knockSum = 0, whineSum = 0, grindSum = 0;
+                
+                for (let i = 0; i < audFrames; i++) {
+                    let frameTotal = 0;
+                    for (let j = 0; j < binCount; j++) {
+                        const hz = j * binHz;
+                        const val = state.audioBuffer[i][j];
+                        
+                        if (hz >= 45 && hz <= 65) humSum += val;
+                        if (hz >= 100 && hz <= 400) knockSum += val;
+                        if (hz >= 2000 && hz <= 4000) whineSum += val;
+                        frameTotal += val;
+                    }
+                    grindSum += (frameTotal / binCount); // avg frame volume
                 }
                 
-                // Flag anomalies exceeding threshold
-                if (blockMaxAmp > CONFIG.anomalyThreshold) {
-                    state.failingBlocks.push({
-                        index: b,
-                        amplitude: blockMaxAmp,
-                        frequency: blockPeakFreq
-                    });
+                bin50_60 = humSum / (audFrames * 2); // approx 2 bins
+                bin100_400 = knockSum / (audFrames * 14); // approx 14 bins
+                binHigh = whineSum / (audFrames * 90); 
+                totalAmp = grindSum / audFrames;
+            }
+
+            // --- 3. EMF ANALYSIS ---
+            let maxEmf = state.emfBuffer.length > 0 ? Math.max(...state.emfBuffer) : 0;
+
+            // --- 4. STATE MAPPING DECISION TREE ---
+            let finalStateId = 0;
+            let finalColor = 'var(--color-optimal)';
+            let finalDiagText = "STATUS: Optimal. No anomalies.";
+            
+            const IS_MOVING = maxGlobalAmp >= CONFIG.evmStaticLimit;
+
+            if (!IS_MOVING) {
+                // A. Machine is OFF or JAMMED (0Hz Camera movement)
+                targetBlock = Math.floor(numBlocks / 2); // Force center box if no movement
+                if (bin50_60 > CONFIG.humThreshold && maxEmf > CONFIG.emfSpikeThreshold) {
+                    finalStateId = 2;
+                    finalColor = 'var(--color-state-2)';
+                    finalDiagText = "CRITICAL: Locked Rotor. Turn off immediately.";
+                } else {
+                    finalStateId = 1;
+                    finalColor = 'var(--color-state-1)';
+                    finalDiagText = "DIAGNOSIS: No Power. Wire cut or burnt coil.";
+                }
+            } else {
+                // B. Machine is MOVING (5Hz-30Hz vibration detected)
+                if (maxGlobalAmp > CONFIG.evmCriticalLimit && totalAmp > CONFIG.grindThreshold) {
+                    finalStateId = 5;
+                    finalColor = 'var(--color-state-5)';
+                    finalDiagText = "CRITICAL: Severe structural imbalance.";
+                } else if (maxGlobalAmp > CONFIG.evmBaseLimit && binHigh > CONFIG.whineThreshold) {
+                    finalStateId = 4;
+                    finalColor = 'var(--color-state-4)';
+                    finalDiagText = "Alert: Bearing Wear. Expected failure soon.";
+                } else if (bin100_400 > CONFIG.knockThreshold) {
+                    finalStateId = 3;
+                    finalColor = 'var(--color-state-3)';
+                    finalDiagText = "Warning: Physical Obstruction hitting blade.";
                 }
             }
 
-            const isFaulty = state.failingBlocks.length > 0;
-            
-            state.scanResult = {
+            state.resultData = {
                 timestamp: new Date().toISOString(),
-                status: isFaulty ? 'FAIL' : 'PASS',
-                peakFrequency: isFaulty ? globalPeakFrequency.toFixed(2) : '0.00',
-                maxAmplitude: globalMaxAmplitude.toFixed(2)
+                state: finalStateId,
+                primaryFrequencyHz: IS_MOVING ? "5-30Hz" : "0Hz",
+                emfLevel: maxEmf.toFixed(1) + " µT"
             };
 
-            logToDatabase(state.scanResult);
-            showResults(isFaulty);
+            logToStorage(state.resultData);
+            renderFinalOutput(boxX, boxY, boxW, boxH, targetBlock, finalColor, finalDiagText);
         }
 
         /**
-         * 6. RESULTS & LOGGING
+         * ==========================================
+         * FINAL CAPTURE DRAWING & LOGGING
+         * ==========================================
          */
-        function showResults(isFaulty) {
+        function renderFinalOutput(bX, bY, bW, bH, targetIdx, boxColor, textStr) {
             state.status = 'RESULT';
-            sysStatus.innerText = isFaulty ? 'FAULT DETECTED' : 'SYSTEM OPTIMAL';
-            sysStatus.style.color = isFaulty ? 'var(--accent-danger)' : 'var(--accent-success)';
+            const w = canvas.width;
+            const h = canvas.height;
             
-            statusOverlay.style.display = 'block';
-            statusOverlay.style.borderColor = isFaulty ? 'var(--accent-danger)' : 'var(--accent-success)';
+            // 1. Freeze Video Frame (draw last cached video frame)
+            ctx.drawImage(video, 0, 0, w, h);
+
+            // 2. Draw target bounding box strictly over the isolated grid coordinate
+            const bw = bW / CONFIG.gridSize;
+            const bh = bH / CONFIG.gridSize;
+            const gy = Math.floor(targetIdx / CONFIG.gridSize);
+            const gx = targetIdx % CONFIG.gridSize;
             
-            if (isFaulty) {
-                statusOverlay.style.color = 'var(--accent-danger)';
-                statusOverlay.innerHTML = `⚠️ MECHANICAL FAULT DETECTED<br>Freq: ${state.scanResult.peakFrequency}Hz | Mag: ${state.scanResult.maxAmplitude}`;
-            } else {
-                statusOverlay.style.color = 'var(--accent-success)';
-                statusOverlay.innerHTML = `✓ STATUS: OPTIMAL. NO ANOMALOUS VIBRATIONS.`;
-            }
+            const rectX = bX + (gx * bw);
+            const rectY = bY + (gy * bh);
 
-            startBtn.disabled = false;
-            startBtn.innerText = "Initiate New Scan";
-        }
+            // Matte Solid Rect Drawing (NO GLOW/NEON)
+            ctx.strokeStyle = boxColor;
+            ctx.lineWidth = 4;
+            ctx.strokeRect(rectX, rectY, bw, bh);
+            ctx.fillStyle = boxColor;
+            ctx.globalAlpha = 0.3; // Slight matte fill
+            ctx.fillRect(rectX, rectY, bw, bh);
+            ctx.globalAlpha = 1.0;
 
-        function logToDatabase(result) {
-            const logEntry = {
-                timestamp: result.timestamp,
-                status: result.status,
-                peakFrequency: parseFloat(result.peakFrequency)
-            };
-
-            let logs = [];
-            try {
-                const stored = localStorage.getItem('vibration_scan_logs');
-                if (stored) logs = JSON.parse(stored);
-            } catch(e) {}
-            
-            logs.push(logEntry);
-            localStorage.setItem('vibration_scan_logs', JSON.stringify(logs));
-            console.log("Logged strictly to localStorage:", logEntry);
-        }
-
-        /**
-         * 7. CANVAS DRAWING HELPERS
-         */
-        function drawTargetBox(x, y, w, h, color, glowing) {
-            ctx.strokeStyle = color;
-            ctx.lineWidth = 2;
-            ctx.shadowBlur = glowing ? 15 : 0;
-            ctx.shadowColor = glowing ? color : 'transparent';
-            
-            const len = 40;
+            // Optional crosshair within the box
             ctx.beginPath();
-            // TL
-            ctx.moveTo(x, y + len); ctx.lineTo(x, y); ctx.lineTo(x + len, y);
-            // TR
-            ctx.moveTo(x + w - len, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w, y + len);
-            // BR
-            ctx.moveTo(x + w, y + h - len); ctx.lineTo(x + w, y + h); ctx.lineTo(x + w - len, y + h);
-            // BL
-            ctx.moveTo(x + len, y + h); ctx.lineTo(x, y + h); ctx.lineTo(x, y + h - len);
+            ctx.moveTo(rectX + bw/2, rectY + bh/2 - 6);
+            ctx.lineTo(rectX + bw/2, rectY + bh/2 + 6);
+            ctx.moveTo(rectX + bw/2 - 6, rectY + bh/2);
+            ctx.lineTo(rectX + bw/2 + 6, rectY + bh/2);
             ctx.stroke();
+
+            // 3. Show Diagnostic HTML Overlay with icon
+            diagResult.style.display = 'flex';
+            diagResult.style.borderColor = boxColor;
+            diagText.innerText = textStr;
             
-            ctx.shadowBlur = 0;
+            btnScan.disabled = false;
+            btnScan.innerText = "Initialize New Scan";
         }
 
-        function drawGridOverlay(x, y, w, h, color) {
+        function drawMatteGrid(x, y, w, h, color) {
             ctx.strokeStyle = color;
             ctx.lineWidth = 1;
             ctx.beginPath();
-            
-            const stepX = w / CONFIG.gridSize;
-            const stepY = h / CONFIG.gridSize;
-            
+            const sx = w / CONFIG.gridSize;
+            const sy = h / CONFIG.gridSize;
             for (let i = 1; i < CONFIG.gridSize; i++) {
-                ctx.moveTo(x + i * stepX, y); ctx.lineTo(x + i * stepX, y + h);
-                ctx.moveTo(x, y + i * stepY); ctx.lineTo(x + w, y + i * stepY);
+                ctx.moveTo(x + i*sx, y); ctx.lineTo(x + i*sx, y + h);
+                ctx.moveTo(x, y + i*sy); ctx.lineTo(x + w, y + i*sy);
             }
             ctx.stroke();
+            
+            // Outer bounding box
+            ctx.strokeStyle = '#555';
+            ctx.strokeRect(x, y, w, h);
         }
 
-        function drawAnomalies(x, y, w, h) {
-            const blockW = w / CONFIG.gridSize;
-            const blockH = h / CONFIG.gridSize;
-            
-            ctx.strokeStyle = 'var(--accent-danger)';
-            ctx.lineWidth = 3;
-            ctx.shadowColor = 'var(--accent-danger)';
-            ctx.shadowBlur = 12;
-            
-            for (const block of state.failingBlocks) {
-                const gridX = block.index % CONFIG.gridSize;
-                const gridY = Math.floor(block.index / CONFIG.gridSize);
-                
-                const rectX = x + (gridX * blockW);
-                const rectY = y + (gridY * blockH);
-                
-                // Draw glowing RED BOUNDING BOX strictly over the specific grid block
-                ctx.strokeRect(rectX, rectY, blockW, blockH);
-                
-                // Draw inner crosshair for precision feel
-                ctx.beginPath();
-                ctx.moveTo(rectX + blockW/2, rectY + blockH/2 - 6);
-                ctx.lineTo(rectX + blockW/2, rectY + blockH/2 + 6);
-                ctx.moveTo(rectX + blockW/2 - 6, rectY + blockH/2);
-                ctx.lineTo(rectX + blockW/2 + 6, rectY + blockH/2);
-                ctx.stroke();
-            }
-            ctx.shadowBlur = 0;
+        function logToStorage(data) {
+            let logs = [];
+            try {
+                const stored = localStorage.getItem('appliance_diagnostics');
+                if (stored) logs = JSON.parse(stored);
+            } catch(e) {}
+            logs.push(data);
+            localStorage.setItem('appliance_diagnostics', JSON.stringify(logs));
         }
 
-        function resetToIdle() {
+        function resetScan() {
             state.status = 'IDLE';
-            sysStatus.innerText = 'READY';
-            sysStatus.style.color = 'var(--text-main)';
-            startBtn.disabled = false;
-            statusOverlay.style.display = 'none';
-            shakeWarning.style.display = 'none';
+            btnScan.disabled = false;
+            diagResult.style.display = 'none';
             progressBar.style.width = '0%';
+            requestAnimationFrame(renderLoop);
         }
 
         /**
-         * EVENT LISTENERS
+         * ==========================================
+         * EVENTS & BOOTSTRAP
+         * ==========================================
          */
-        startBtn.addEventListener('click', async () => {
+        btnScan.addEventListener('click', async () => {
             if (state.status !== 'IDLE' && state.status !== 'RESULT') return;
-            
-            // On first interaction, request DeviceMotion permissions if required (iOS)
-            await requestMotionPermission();
 
-            // Reset and start
-            state.status = 'SCANNING';
-            sysStatus.innerText = 'SCAN IN PROGRESS...';
-            sysStatus.style.color = 'var(--accent-scan)';
-            startBtn.disabled = true;
-            statusOverlay.style.display = 'none';
+            // Setup Audio Context on User Gesture (Browser Policy)
+            if (!state.audioCtx) {
+                try {
+                    const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    const src = state.audioCtx.createMediaStreamSource(audioStream);
+                    state.analyser = state.audioCtx.createAnalyser();
+                    state.analyser.fftSize = 2048;
+                    src.connect(state.analyser);
+                } catch(e) {
+                    console.warn("Microphone access denied. Audio checks will fail/default to 0.");
+                }
+            }
+
+            // Setup DeviceMotion permission for iOS 13+
+            if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+                try {
+                    const perm = await DeviceMotionEvent.requestPermission();
+                    if (perm === 'granted') window.addEventListener('devicemotion', handleMotion);
+                } catch (e) { console.warn("DeviceMotion denied."); }
+            }
+
+            // Reset buffers
+            state.evmBuffer = Array.from({ length: 400 }, () => []);
+            state.audioBuffer = [];
+            state.emfBuffer = [];
             
-            state.totalFramesCaptured = 0;
-            state.elapsedCaptureTimeMs = 0;
-            state.lastFrameTimestamp = 0;
+            state.frameCount = 0;
+            state.elapsedTimeMs = 0;
+            state.lastTimestamp = 0;
             state.scanStartTime = performance.now();
             
-            // Initialize 400 empty arrays for block data
-            const numBlocks = CONFIG.gridSize * CONFIG.gridSize;
-            state.timeSeriesData = Array.from({ length: numBlocks }, () => []);
+            state.status = 'SCANNING';
+            btnScan.disabled = true;
+            diagResult.style.display = 'none';
             
-            // Re-trigger loop if coming from Result static state
-            requestAnimationFrame(renderLoop);
+            if (state.status === 'RESULT') requestAnimationFrame(renderLoop); // Kickstart if stopped
         });
 
-        // Initialize on Load
-        window.addEventListener('load', initCamera);
-
+        window.addEventListener('load', initSensors);
     </script>
 </body>
 </html>
