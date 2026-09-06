@@ -2,581 +2,701 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Admin Console | Spotify Premium</title>
-    
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Industrial Machine Vibration Diagnostic Tool</title>
     <style>
+        /* Dark & Stealth UI - Military-grade, high-end diagnostic aesthetic */
         :root {
-            --bg-body: #09090b; --bg-panel: #18181b; --bg-input: #27272a;
-            --border-color: #3f3f46; --primary: #1ed760; --primary-hover: #16be55;
-            --danger: #ef4444; --text-main: #f4f4f5; --text-sub: #a1a1aa;
-            --sidebar-width: 260px;
+            --bg-color: #121212;
+            --panel-bg: #1e1e1e;
+            --text-main: #e0e0e0;
+            --text-muted: #888888;
+            --accent-neutral: #555555;
+            --accent-scan: #4a90e2;
+            --accent-success: #2ecc71;
+            --accent-danger: #e74c3c;
+            --font-stack: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            --font-mono: 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; -webkit-tap-highlight-color: transparent; }
-        body { background-color: var(--bg-body); color: var(--text-main); font-family: 'Inter', sans-serif; display: flex; height: 100vh; overflow: hidden; }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--font-stack);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        #app-header {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 10;
+        }
+
+        #app-header h1 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text-main);
+        }
+
+        #app-header p {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        #diagnostic-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            aspect-ratio: 4/3;
+            background-color: #000;
+            border: 1px solid var(--accent-neutral);
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        video {
+            display: none; /* Hidden, we draw to canvas */
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        #controls {
+            margin-top: 30px;
+            display: flex;
+            gap: 15px;
+            z-index: 10;
+        }
+
+        button {
+            background-color: var(--panel-bg);
+            color: var(--text-main);
+            border: 1px solid var(--accent-neutral);
+            padding: 12px 24px;
+            font-size: 0.9rem;
+            font-family: var(--font-stack);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-radius: 2px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        button:hover:not(:disabled) {
+            background-color: #2a2a2a;
+            border-color: var(--text-muted);
+        }
+
+        button:active:not(:disabled) {
+            transform: translateY(1px);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        #start-btn {
+            border-left: 3px solid var(--text-main);
+        }
+
+        #status-overlay {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(18, 18, 18, 0.85);
+            padding: 10px 20px;
+            border: 1px solid var(--accent-neutral);
+            border-radius: 2px;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            text-align: center;
+            backdrop-filter: blur(4px);
+            display: none;
+            z-index: 20;
+            white-space: nowrap;
+        }
         
-        /* SIDEBAR */
-        #sidebar { width: var(--sidebar-width); background-color: var(--bg-panel); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; padding: 24px; flex-shrink: 0; z-index: 100; }
-        .brand { font-size: 1.25rem; font-weight: 700; color: var(--text-main); margin-bottom: 40px; display: flex; align-items: center; gap: 12px; }
-        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: var(--text-sub); cursor: pointer; border-radius: 6px; font-weight: 500; margin-bottom: 4px; transition: all 0.2s; }
-        .nav-item:hover { background-color: var(--bg-input); color: var(--text-main); }
-        .nav-item.active { background-color: rgba(30, 215, 96, 0.1); color: var(--primary); }
-        .nav-item i { width: 20px; text-align: center; }
+        #scan-progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            background-color: var(--accent-scan);
+            width: 0%;
+            transition: width 0.1s linear;
+            z-index: 15;
+        }
 
-        /* MAIN */
-        #main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; position: relative; }
-        header { height: 70px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 30px; background-color: var(--bg-body); flex-shrink: 0; }
-        .header-title { font-weight: 600; font-size: 1.1rem; }
-        .status-badge { font-size: 0.75rem; background: rgba(30, 215, 96, 0.1); color: var(--primary); padding: 4px 12px; border-radius: 20px; font-weight: 600; }
-        #content-area { flex: 1; padding: 30px; overflow-y: auto; }
-
-        /* COMPONENTS */
-        .card { background-color: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
-        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
-        .card-title { font-size: 1.1rem; font-weight: 600; }
-        .btn { padding: 10px 20px; border-radius: 6px; font-weight: 600; font-size: 0.85rem; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; }
-        .btn-primary { background-color: var(--primary); color: #000; }
-        .btn-primary:hover { background-color: var(--primary-hover); }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        
-        /* TABLE */
-        .table-responsive { overflow-x: auto; }
-        .data-table { width: 100%; border-collapse: collapse; min-width: 600px; }
-        .data-table th { text-align: left; padding: 12px 16px; color: var(--text-sub); font-size: 0.75rem; text-transform: uppercase; border-bottom: 1px solid var(--border-color); }
-        .data-table td { padding: 16px; border-bottom: 1px solid var(--border-color); color: var(--text-main); font-size: 0.9rem; }
-        .icon-btn { width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--border-color); background: transparent; color: var(--text-sub); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; margin-left: 5px; }
-        .icon-btn:hover { border-color: var(--text-main); color: var(--text-main); }
-        
-        /* GRID */
-        .cat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
-        .cat-card-admin { background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; display: flex; align-items: center; justify-content: space-between; }
-        .cat-info { display: flex; align-items: center; gap: 12px; }
-        .cat-info img { width: 50px; height: 50px; border-radius: 6px; object-fit: cover; }
-
-        /* MODAL */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
-        .modal { background-color: var(--bg-panel); width: 500px; max-width: 90%; border-radius: 12px; border: 1px solid var(--border-color); padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-        .form-group { margin-bottom: 20px; }
-        .form-label { display: block; color: var(--text-sub); font-size: 0.85rem; margin-bottom: 8px; font-weight: 500; }
-        .form-input { width: 100%; background-color: var(--bg-input); border: 1px solid var(--border-color); color: var(--text-main); padding: 12px; border-radius: 6px; font-family: inherit; }
-        input[type="file"]::file-selector-button { background-color: var(--primary); color: #000; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-right: 10px; font-weight: 600; }
-        
-        /* SETTINGS */
-        .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; border-bottom: 1px solid var(--border-color); }
-        .toggle-switch { position: relative; width: 50px; height: 26px; }
-        .toggle-input { opacity: 0; width: 0; height: 0; }
-        .toggle-slider { position: absolute; cursor: pointer; inset: 0; background-color: #333; border-radius: 34px; transition: .4s; }
-        .toggle-slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: white; border-radius: 50%; transition: .4s; }
-        .toggle-input:checked + .toggle-slider { background-color: var(--primary); }
-        .toggle-input:checked + .toggle-slider:before { transform: translateX(24px); }
-
-        /* STATS */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .stat-card { background: var(--bg-panel); padding: 24px; border-radius: 12px; border: 1px solid var(--border-color); }
-        .stat-value { font-size: 2.5rem; font-weight: 700; margin-top: 10px; color: var(--primary); }
-        .stat-label { color: var(--text-sub); font-size: 0.9rem; font-weight: 500; }
-        
-        .hidden { display: none !important; }
-
-        /* AUTH SCREEN */
-        #auth-overlay { position: fixed; inset: 0; background-color: var(--bg-body); z-index: 2000; display: flex; justify-content: center; align-items: center; }
-        .auth-box { text-align: center; width: 100%; max-width: 400px; padding: 40px; }
-
-        @media (max-width: 768px) {
-            body { flex-direction: column; }
-            #sidebar { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; flex-direction: row; justify-content: space-around; padding: 0; border-right: none; border-top: 1px solid var(--border-color); align-items: center; z-index: 500; }
-            .brand { display: none; }
-            .nav-item { flex-direction: column; font-size: 0.6rem; gap: 5px; padding: 5px; margin: 0; background: transparent !important; }
-            .nav-item i { font-size: 1.2rem; }
-            .nav-item.active { color: var(--primary); }
-            #main { height: calc(100vh - 70px); }
-            header { padding: 0 20px; }
-            #content-area { padding: 20px; }
+        /* Scan Line Animation Overlay */
+        .scanline {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 5;
         }
     </style>
 </head>
 <body>
 
-    <!-- AUTHENTICATION SCREEN (LOGIN) -->
-    <div id="auth-overlay">
-        <div class="auth-box">
-            <i class="fab fa-spotify" style="font-size: 4rem; color: var(--primary); margin-bottom: 20px;"></i>
-            <h1 style="font-weight: 700; margin-bottom: 10px;">Admin Login</h1>
-            <p style="color: var(--text-sub); margin-bottom: 30px;">Access your music database.</p>
-            <button class="btn btn-primary" style="width: 100%; justify-content: center; padding: 15px;" onclick="loginAdmin()">
-                <i class="fab fa-google"></i> Continue with Google
-            </button>
-        </div>
+    <div id="app-header">
+        <h1>Vibration Diagnostic Tool</h1>
+        <p>SYS.VER: EVM-FFT-1.0.4 | STATUS: <span id="sys-status">INITIALIZING</span></p>
     </div>
 
-    <!-- SIDEBAR -->
-    <nav id="sidebar" class="hidden">
-        <div class="brand">
-            <i class="fab fa-spotify" style="font-size: 1.8rem; color: var(--primary);"></i>
-            <span>AdminPanel</span>
-        </div>
-        <div class="nav-item active" onclick="switchTab('dashboard')"><i class="fas fa-chart-line"></i><span>Overview</span></div>
-        <div class="nav-item" onclick="switchTab('songs')"><i class="fas fa-music"></i><span>Songs</span></div>
-        <div class="nav-item" onclick="switchTab('categories')"><i class="fas fa-th-large"></i><span>Categories</span></div>
-        <div class="nav-item" onclick="switchTab('users')"><i class="fas fa-users"></i><span>Users</span></div>
-        <div class="nav-item" onclick="switchTab('settings')"><i class="fas fa-sliders-h"></i><span>Controls</span></div>
-        <div class="nav-item" onclick="logout()" style="margin-top:auto;"><i class="fas fa-sign-out-alt"></i><span>Logout</span></div>
-    </nav>
-
-    <!-- MAIN -->
-    <main id="main" class="hidden">
-        <header>
-            <div class="header-title">Dashboard</div>
-            <div class="status-badge">● System Online</div>
-        </header>
-
-        <div id="content-area">
-            <!-- DASHBOARD -->
-            <div id="view-dashboard">
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-label">Total Songs</div>
-                        <div class="stat-value" id="stat-songs">0</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Categories</div>
-                        <div class="stat-value" id="stat-cats">0</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Total Users</div>
-                        <div class="stat-value" id="stat-users">0</div>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-header"><div class="card-title">System Status</div></div>
-                    <div style="color: var(--text-sub); font-size: 0.9rem;">
-                        <i class="fas fa-check-circle" style="color: var(--primary); margin-right: 8px;"></i> Firebase (Auth/DB) Connected<br><br>
-                        <i class="fas fa-check-circle" style="color: var(--primary); margin-right: 8px;"></i> Supabase Storage Ready<br><br>
-                        <i class="fas fa-clock" style="color: var(--text-sub); margin-right: 8px;"></i> Sync: Realtime
-                    </div>
-                </div>
-            </div>
-
-            <!-- SONGS -->
-            <div id="view-songs" class="hidden">
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-title">Music Library</div>
-                        <button class="btn btn-primary" onclick="openSongModal()"><i class="fas fa-plus"></i> Add Song</button>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="data-table">
-                            <thead><tr><th width="50">Art</th><th>Title</th><th>Artist</th><th>Category</th><th style="text-align: right;">Actions</th></tr></thead>
-                            <tbody id="songs-table-body"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- CATEGORIES -->
-            <div id="view-categories" class="hidden">
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-title">Categories</div>
-                        <button class="btn btn-primary" onclick="openCatModal()"><i class="fas fa-plus"></i> Add Category</button>
-                    </div>
-                    <div class="cat-grid" id="categories-grid"></div>
-                </div>
-            </div>
-
-            <!-- USERS -->
-            <div id="view-users" class="hidden">
-                <div class="card">
-                    <div class="card-header"><div class="card-title">Users</div></div>
-                    <div class="table-responsive">
-                        <table class="data-table">
-                            <thead><tr><th width="50">Pic</th><th>Name</th><th>Email</th><th>UID</th></tr></thead>
-                            <tbody id="users-table-body"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SETTINGS -->
-            <div id="view-settings" class="hidden">
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-title">Configuration</div>
-                        <button class="btn btn-primary" onclick="saveSettings()">Save Changes</button>
-                    </div>
-                    <div class="setting-row">
-                        <div>
-                            <div style="font-weight: 600;">Maintenance Mode</div>
-                            <div style="color: var(--text-sub); font-size: 0.85rem;">Disable app access for users</div>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" class="toggle-input" id="set-maintenance">
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                    <div class="setting-row">
-                        <div>
-                            <div style="font-weight: 600;">Custom Greeting</div>
-                            <div style="color: var(--text-sub); font-size: 0.85rem;">Override time-based greeting</div>
-                        </div>
-                        <input type="text" id="set-greeting" class="form-input" style="width: 250px;" placeholder="Default">
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- MODAL: SONG -->
-    <div class="modal-overlay" id="song-modal">
-        <div class="modal">
-            <h2 class="card-title" style="margin-bottom: 20px;" id="modal-title">Add Song</h2>
-            <div class="form-group">
-                <label class="form-label">Song Name</label>
-                <input type="text" class="form-input" id="inp-name" placeholder="e.g. Blinding Lights">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Artist</label>
-                <input type="text" class="form-input" id="inp-artist" placeholder="e.g. The Weeknd">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Category</label>
-                <input type="text" class="form-input" id="inp-cat" list="cat-datalist" placeholder="Select or type...">
-                <datalist id="cat-datalist"></datalist>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Audio File</label>
-                <input type="file" class="form-input" id="inp-audio" accept="audio/*">
-                <div id="curr-audio-msg" style="font-size:0.8rem; color:var(--primary); margin-top:5px; display:none;">Current file preserved</div>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Cover Image</label>
-                <input type="file" class="form-input" id="inp-img" accept="image/*">
-                <div id="curr-img-msg" style="font-size:0.8rem; color:var(--primary); margin-top:5px; display:none;">Current image preserved</div>
-            </div>
-            <div style="display: flex; gap: 10px; margin-top: 30px;">
-                <button class="btn btn-primary" style="flex: 1;" id="btn-save-song" onclick="submitSong()">Save</button>
-                <button class="btn" style="background: #333; color: white; flex: 1;" onclick="closeModal('song-modal')">Cancel</button>
-            </div>
-        </div>
+    <div id="diagnostic-container">
+        <video id="camera-feed" autoplay playsinline muted></video>
+        <canvas id="main-canvas"></canvas>
+        <div class="scanline"></div>
+        <div id="scan-progress-bar"></div>
+        <div id="status-overlay"></div>
     </div>
 
-    <!-- MODAL: CATEGORY -->
-    <div class="modal-overlay" id="cat-modal">
-        <div class="modal">
-            <h2 class="card-title" style="margin-bottom: 20px;" id="cat-modal-title">Add Category</h2>
-            <div class="form-group">
-                <label class="form-label">Name</label>
-                <input type="text" class="form-input" id="inp-cat-name" placeholder="e.g. Pop">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Image</label>
-                <input type="file" class="form-input" id="inp-cat-img" accept="image/*">
-                <div id="curr-cat-msg" style="font-size:0.8rem; color:var(--primary); margin-top:5px; display:none;">Current image preserved</div>
-            </div>
-            <div style="display: flex; gap: 10px; margin-top: 30px;">
-                <button class="btn btn-primary" style="flex: 1;" id="btn-save-cat" onclick="submitCategory()">Save</button>
-                <button class="btn" style="background: #333; color: white; flex: 1;" onclick="closeModal('cat-modal')">Cancel</button>
-            </div>
-        </div>
+    <div id="controls">
+        <button id="start-btn" disabled>Start Diagnostic Scan</button>
     </div>
-
-    <!-- SDKS -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
-        // --- 1. CONFIG & INIT ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyBsqN79Fzb80pfxbX3N0Oq_LcLt8mfAidc",
-            authDomain: "trder-f0be8.firebaseapp.com",
-            databaseURL: "https://trder-f0be8-default-rtdb.firebaseio.com",
-            projectId: "trder-f0be8",
-            storageBucket: "trder-f0be8.firebasestorage.app",
-            messagingSenderId: "563351880166",
-            appId: "1:563351880166:web:571a888237d91f83871627"
+        /**
+         * Core Application State & Config
+         */
+        const CONFIG = {
+            scanDurationMs: 5000,         // 5 seconds analysis window
+            gridSize: 16,                 // 16x16 targeting box grid
+            targetBoxRatio: 0.5,          // Box takes up 50% of canvas dimension
+            freqMin: 5,                   // Minimum frequency to look for (Hz)
+            freqMax: 60,                  // Maximum frequency (Hz) - Limited by Nyquist (FPS/2)
+            anomalyThreshold: 8.5         // FFT amplitude threshold for identifying anomalies
         };
-        
-        const SUPABASE_URL = "https://jjexbystudxcfuelredy.supabase.co";
-        const SUPABASE_KEY = "sb_publishable_5yfe-H3kNq6GCAe0VXrQ3g_yJTAZcFJ";
 
-        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.database();
+        const state = {
+            status: 'INIT', // INIT, IDLE, SCANNING, ANALYZING, RESULT
+            cameraStream: null,
+            scanStartTime: 0,
+            frameCount: 0,
+            frameTimestamps: [],
+            // 2D Array storing time-series data for each grid cell
+            // timeSeriesData[cellIndex][frameIndex]
+            timeSeriesData: [], 
+            scanResult: null,
+            failingCells: []
+        };
 
-        // Singleton Supabase Client
-        if (!window.__SUPABASE__) {
-            window.__SUPABASE__ = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        }
-        const supabaseClient = window.__SUPABASE__;
+        /**
+         * DOM Elements
+         */
+        const video = document.getElementById('camera-feed');
+        const canvas = document.getElementById('main-canvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const startBtn = document.getElementById('start-btn');
+        const statusOverlay = document.getElementById('status-overlay');
+        const sysStatus = document.getElementById('sys-status');
+        const progressBar = document.getElementById('scan-progress-bar');
 
-        // --- 2. STATE ---
-        let allSongs = [], allCats = [];
-        let editingSongId = null, editingCatId = null;
-        let editAudioUrl = "", editImgUrl = "", editCatUrl = "";
-
-        // --- 3. AUTH GUARD (MODIFIED) ---
-        auth.onAuthStateChanged(user => {
-            if (user) {
-                // USER IS LOGGED IN
-                document.getElementById('auth-overlay').classList.add('hidden');
-                document.getElementById('sidebar').classList.remove('hidden');
-                document.getElementById('main').classList.remove('hidden');
-                document.getElementById('sidebar').style.display = 'flex';
-                document.getElementById('main').style.display = 'flex';
-                initAdmin();
-            } else {
-                // USER IS LOGGED OUT
-                document.getElementById('auth-overlay').classList.remove('hidden');
-                document.getElementById('sidebar').classList.add('hidden');
-                document.getElementById('main').classList.add('hidden');
+        /**
+         * Initialization - WebRTC Camera Access
+         */
+        async function initCamera() {
+            try {
+                const constraints = {
+                    video: {
+                        facingMode: 'environment', // Prefer rear camera for industrial scanning
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    },
+                    audio: false
+                };
+                
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                video.srcObject = stream;
+                state.cameraStream = stream;
+                
+                video.onloadedmetadata = () => {
+                    video.play();
+                    // Match canvas internal resolution to video aspect ratio
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    
+                    state.status = 'IDLE';
+                    sysStatus.innerText = 'READY';
+                    startBtn.disabled = false;
+                    
+                    // Start render loop
+                    requestAnimationFrame(renderLoop);
+                };
+            } catch (err) {
+                console.error("Camera access failed:", err);
+                sysStatus.innerText = 'CAMERA ERROR';
+                sysStatus.style.color = 'var(--accent-danger)';
+                alert("Camera access is required for the diagnostic tool.");
             }
-        });
-
-        // Login Function
-        window.loginAdmin = function() {
-            var provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider).catch(function(error) {
-                alert("Login Error: " + error.message);
-            });
         }
 
-        // Logout Function
-        window.logout = function() {
-            auth.signOut();
-            // Auth State listener will handle the UI update automatically
-        }
-
-        function initAdmin() {
-            fetchSongs();
-            fetchCategories();
-            fetchUsers();
-            fetchSettings();
-        }
-
-        // --- 4. NAVIGATION ---
-        window.switchTab = function(tabId) {
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            if(event && event.currentTarget) event.currentTarget.classList.add('active');
+        /**
+         * Pure JavaScript Fast Fourier Transform (Cooley-Tukey Radix-2)
+         * Modifies real and imag arrays in place. Arrays must be power of 2 length.
+         */
+        function computeFFT(real, imag) {
+            const n = real.length;
             
-            ['dashboard','songs','categories','users','settings'].forEach(id => {
-                document.getElementById('view-'+id).classList.add('hidden');
-            });
-            document.getElementById('view-'+tabId).classList.remove('hidden');
+            // Bit-reversal permutation
+            for (let i = 0, j = 0; i < n; i++) {
+                if (j > i) {
+                    let tempRe = real[i];
+                    real[i] = real[j];
+                    real[j] = tempRe;
+                    let tempIm = imag[i];
+                    imag[i] = imag[j];
+                    imag[j] = tempIm;
+                }
+                let m = n >> 1;
+                while (m >= 1 && j >= m) {
+                    j -= m;
+                    m >>= 1;
+                }
+                j += m;
+            }
+
+            // Cooley-Tukey calculation
+            for (let size = 2; size <= n; size *= 2) {
+                const halfSize = size / 2;
+                const angle = -2 * Math.PI / size;
+                const wRe = Math.cos(angle);
+                const wIm = Math.sin(angle);
+                
+                for (let i = 0; i < n; i += size) {
+                    let uRe = 1;
+                    let uIm = 0;
+                    
+                    for (let j = 0; j < halfSize; j++) {
+                        const evenRe = real[i + j];
+                        const evenIm = imag[i + j];
+                        const oddRe = real[i + j + halfSize];
+                        const oddIm = imag[i + j + halfSize];
+                        
+                        const tRe = uRe * oddRe - uIm * oddIm;
+                        const tIm = uRe * oddIm + uIm * oddRe;
+                        
+                        real[i + j] = evenRe + tRe;
+                        imag[i + j] = evenIm + tIm;
+                        real[i + j + halfSize] = evenRe - tRe;
+                        imag[i + j + halfSize] = evenIm - tIm;
+                        
+                        const nextURe = uRe * wRe - uIm * wIm;
+                        const nextUIm = uRe * wIm + uIm * wRe;
+                        uRe = nextURe;
+                        uIm = nextUIm;
+                    }
+                }
+            }
+        }
+
+        /**
+         * Next Power of 2 Helper
+         */
+        function nextPowerOf2(n) {
+            let count = 0;
+            if (n && !(n & (n - 1))) return n; // Already power of 2
+            while( n != 0) {
+                n >>= 1;
+                count += 1;
+            }
+            return 1 << count;
+        }
+
+        /**
+         * Main Analysis Logic (Signal Processing)
+         */
+        function analyzeData() {
+            state.status = 'ANALYZING';
+            sysStatus.innerText = 'ANALYZING SIGNAL...';
             
-            const titles = {
-                dashboard: "Dashboard", songs: "Song Management", categories: "Category Manager",
-                users: "User Database", settings: "App Controls"
+            const totalFrames = state.frameCount;
+            const elapsedTimeSec = (state.frameTimestamps[totalFrames - 1] - state.frameTimestamps[0]) / 1000;
+            const actualFps = totalFrames / elapsedTimeSec;
+            
+            console.log(`Scan complete. Captured ${totalFrames} frames over ${elapsedTimeSec.toFixed(2)}s. Approx FPS: ${actualFps.toFixed(2)}`);
+            
+            const numCells = CONFIG.gridSize * CONFIG.gridSize;
+            const fftSize = nextPowerOf2(totalFrames); // Pad to power of 2
+            
+            let globalPeakFrequency = 0;
+            let globalMaxAmplitude = 0;
+            state.failingCells = [];
+
+            // Analyze each grid cell individually
+            for (let cell = 0; cell < numCells; cell++) {
+                const signal = state.timeSeriesData[cell];
+                
+                // 1. Calculate Mean for DC Removal (Detrending)
+                let sum = 0;
+                for (let i = 0; i < totalFrames; i++) sum += signal[i];
+                const mean = sum / totalFrames;
+                
+                // 2. Prepare Real and Imaginary arrays padded to fftSize
+                const real = new Float64Array(fftSize);
+                const imag = new Float64Array(fftSize);
+                
+                for (let i = 0; i < fftSize; i++) {
+                    if (i < totalFrames) {
+                        // Apply Hanning Window to reduce spectral leakage
+                        const multiplier = 0.5 * (1 - Math.cos((2 * Math.PI * i) / (totalFrames - 1)));
+                        real[i] = (signal[i] - mean) * multiplier;
+                    } else {
+                        real[i] = 0; // Zero padding
+                    }
+                    imag[i] = 0;
+                }
+                
+                // 3. Execute FFT
+                computeFFT(real, imag);
+                
+                // 4. Calculate Magnitudes & find peaks within target frequency range
+                let cellMaxAmp = 0;
+                let cellPeakFreq = 0;
+                
+                // Only loop through first half (Nyquist limit)
+                for (let i = 1; i < fftSize / 2; i++) {
+                    const frequency = i * (actualFps / fftSize);
+                    
+                    // Filter frequencies based on config (and physical Nyquist limitation)
+                    if (frequency >= CONFIG.freqMin && frequency <= CONFIG.freqMax && frequency <= actualFps/2) {
+                        const magnitude = Math.sqrt(real[i] * real[i] + imag[i] * imag[i]);
+                        // Normalize magnitude by N
+                        const normalizedMag = magnitude / (totalFrames / 2);
+                        
+                        if (normalizedMag > cellMaxAmp) {
+                            cellMaxAmp = normalizedMag;
+                            cellPeakFreq = frequency;
+                        }
+                    }
+                }
+                
+                // Track global maximums for logging
+                if (cellMaxAmp > globalMaxAmplitude) {
+                    globalMaxAmplitude = cellMaxAmp;
+                    globalPeakFrequency = cellPeakFreq;
+                }
+                
+                // 5. Threshold Detection
+                if (cellMaxAmp > CONFIG.anomalyThreshold) {
+                    state.failingCells.push({
+                        index: cell,
+                        amplitude: cellMaxAmp,
+                        frequency: cellPeakFreq
+                    });
+                }
+            }
+
+            // Evaluation
+            const isAnomaly = state.failingCells.length > 0;
+            state.scanResult = {
+                status: isAnomaly ? 'FAIL' : 'PASS',
+                peakFrequency: isAnomaly ? globalPeakFrequency.toFixed(2) : '0.00',
+                maxAmplitude: globalMaxAmplitude.toFixed(2),
+                failingCount: state.failingCells.length
             };
-            document.querySelector('.header-title').innerText = titles[tabId] || "Admin";
-        };
 
-        // --- 5. SUPABASE UPLOAD ---
-        async function uploadToSupabase(file, folder) {
-            const fileName = `${folder}/${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
-            const { data, error } = await supabaseClient.storage.from('media').upload(fileName, file);
-            if(error) throw error;
-            const { data: publicData } = supabaseClient.storage.from('media').getPublicUrl(fileName);
-            return publicData.publicUrl;
+            logResultToDatabase(state.scanResult);
+            finalizeScanUI(isAnomaly);
         }
 
-        // --- 6. SONGS ---
-        function fetchSongs() {
-            db.ref('songs').on('value', snap => {
-                const data = snap.val(); allSongs = [];
-                const tb = document.getElementById('songs-table-body'); tb.innerHTML = '';
-                if(data) {
-                    Object.keys(data).forEach(k => {
-                        const s = data[k]; allSongs.push({id:k, ...s});
-                        tb.innerHTML += `
-                            <tr class="song-row">
-                                <td><img src="${s.imageURL}" onerror="this.src='https://via.placeholder.com/40'"></td>
-                                <td style="font-weight:600">${s.songName}</td>
-                                <td style="color:var(--text-sub)">${s.artistName}</td>
-                                <td><span style="background:var(--bg-input); padding:2px 8px; border-radius:4px; font-size:0.8rem;">${s.category||'None'}</span></td>
-                                <td style="text-align: right;">
-                                    <button class="icon-btn" onclick="editSong('${k}')"><i class="fas fa-pen"></i></button>
-                                    <button class="icon-btn" onclick="deleteSong('${k}')" style="color:var(--danger); border-color:var(--danger)"><i class="fas fa-trash"></i></button>
-                                </td>
-                            </tr>`;
-                    });
-                }
-                document.getElementById('stat-songs').innerText = allSongs.length;
-            });
-        }
+        /**
+         * Local Storage Logging
+         */
+        function logResultToDatabase(result) {
+            const logEntry = {
+                id: Date.now(),
+                timestamp: new Date().toISOString(),
+                status: result.status,
+                peakFrequencyHz: parseFloat(result.peakFrequency),
+                maxAmplitude: parseFloat(result.maxAmplitude)
+            };
 
-        window.openSongModal = function() {
-            editingSongId = null; editAudioUrl = ""; editImgUrl = "";
-            document.getElementById('modal-title').innerText = "Add New Song";
-            clearInputs('song');
-            document.getElementById('curr-audio-msg').style.display = 'none';
-            document.getElementById('curr-img-msg').style.display = 'none';
-            populateCatDatalist();
-            document.getElementById('song-modal').style.display = 'flex';
-        }
-
-        window.editSong = function(id) {
-            editingSongId = id; const s = allSongs.find(x => x.id === id);
-            if(!s) return;
-            editAudioUrl = s.audioURL; editImgUrl = s.imageURL;
-            document.getElementById('modal-title').innerText = "Edit Song";
-            document.getElementById('inp-name').value = s.songName;
-            document.getElementById('inp-artist').value = s.artistName;
-            document.getElementById('inp-cat').value = s.category;
-            document.getElementById('inp-audio').value = "";
-            document.getElementById('inp-img').value = "";
-            document.getElementById('curr-audio-msg').style.display = 'block';
-            document.getElementById('curr-img-msg').style.display = 'block';
-            populateCatDatalist();
-            document.getElementById('song-modal').style.display = 'flex';
-        }
-
-        window.submitSong = async function() {
-            const name = document.getElementById('inp-name').value;
-            const artist = document.getElementById('inp-artist').value;
-            const cat = document.getElementById('inp-cat').value;
-            const fAud = document.getElementById('inp-audio').files[0];
-            const fImg = document.getElementById('inp-img').files[0];
-
-            if(!name || !artist) return alert("Name/Artist required");
-            if(!editingSongId && (!fAud || !fImg)) return alert("Files required for new song");
-
-            const btn = document.getElementById('btn-save-song');
-            const oldTxt = btn.innerText; btn.innerText = "Uploading..."; btn.disabled = true;
-
+            let logs = [];
             try {
-                let finalAud = editAudioUrl;
-                let finalImg = editImgUrl;
-                if(fAud) finalAud = await uploadToSupabase(fAud, 'audio');
-                if(fImg) finalImg = await uploadToSupabase(fImg, 'images');
-
-                const payload = { songName: name, artistName: artist, category: cat, audioURL: finalAud, imageURL: finalImg, ts: Date.now() };
-                if(editingSongId) await db.ref('songs/'+editingSongId).update(payload);
-                else await db.ref('songs').push(payload);
-                closeModal('song-modal');
-            } catch(e) { alert("Error: "+e.message); }
-            finally { btn.innerText = oldTxt; btn.disabled = false; }
+                const stored = localStorage.getItem('vibration_scan_logs');
+                if (stored) logs = JSON.parse(stored);
+            } catch(e) {}
+            
+            logs.push(logEntry);
+            localStorage.setItem('vibration_scan_logs', JSON.stringify(logs));
+            console.log("Scan logged to local database:", logEntry);
         }
 
-        window.deleteSong = function(id) {
-            if(confirm("Delete song?")) db.ref('songs/'+id).remove();
-        }
+        /**
+         * Frame Rendering & Capture Loop
+         */
+        function renderLoop(timestamp) {
+            if (!state.cameraStream) return;
 
-        // --- 7. CATEGORIES ---
-        function fetchCategories() {
-            db.ref('categories').on('value', snap => {
-                const data = snap.val(); allCats = [];
-                const grid = document.getElementById('categories-grid'); grid.innerHTML = '';
-                if(data) {
-                    Object.keys(data).forEach(k => {
-                        const c = data[k]; allCats.push({id:k, ...c});
-                        grid.innerHTML += `
-                            <div class="cat-card-admin">
-                                <div class="cat-info"><img src="${c.imageURL}" onerror="this.src='https://via.placeholder.com/50'"><div class="cat-name">${c.name}</div></div>
-                                <div>
-                                    <button class="icon-btn" onclick="editCat('${k}')"><i class="fas fa-pen"></i></button>
-                                    <button class="icon-btn" onclick="deleteCat('${k}')" style="color:var(--danger); border-color:var(--danger)"><i class="fas fa-trash"></i></button>
-                                </div>
-                            </div>`;
-                    });
+            const w = canvas.width;
+            const h = canvas.height;
+            
+            // Calculate Targeting Box Dimensions
+            const boxW = w * CONFIG.targetBoxRatio;
+            const boxH = h * CONFIG.targetBoxRatio;
+            const boxX = (w - boxW) / 2;
+            const boxY = (h - boxH) / 2;
+
+            // 1. Draw Camera Feed
+            ctx.drawImage(video, 0, 0, w, h);
+
+            if (state.status === 'SCANNING') {
+                const elapsed = timestamp - state.scanStartTime;
+                const progress = Math.min((elapsed / CONFIG.scanDurationMs) * 100, 100);
+                progressBar.style.width = `${progress}%`;
+
+                // Capture Image Data in Targeting Box for EVM/FFT Analysis
+                const frameData = ctx.getImageData(boxX, boxY, boxW, boxH);
+                extractGridIntensities(frameData, boxW, boxH);
+                
+                state.frameTimestamps.push(timestamp);
+                state.frameCount++;
+
+                // Draw Scanning Grid
+                drawGridOverlay(boxX, boxY, boxW, boxH, 'rgba(255, 255, 255, 0.2)');
+                drawTargetBox(boxX, boxY, boxW, boxH, 'var(--text-main)', false);
+
+                if (elapsed >= CONFIG.scanDurationMs) {
+                    progressBar.style.width = '0%';
+                    analyzeData();
+                } else {
+                    requestAnimationFrame(renderLoop);
                 }
-                document.getElementById('stat-cats').innerText = allCats.length;
-            });
-        }
 
-        window.openCatModal = function() {
-            editingCatId = null; editCatUrl = "";
-            document.getElementById('cat-modal-title').innerText = "Add Category";
-            clearInputs('cat');
-            document.getElementById('curr-cat-msg').style.display = 'none';
-            document.getElementById('cat-modal').style.display = 'flex';
-        }
-
-        window.editCat = function(id) {
-            editingCatId = id; const c = allCats.find(x => x.id === id);
-            editCatUrl = c.imageURL;
-            document.getElementById('cat-modal-title').innerText = "Edit Category";
-            document.getElementById('inp-cat-name').value = c.name;
-            document.getElementById('inp-cat-img').value = "";
-            document.getElementById('curr-cat-msg').style.display = 'block';
-            document.getElementById('cat-modal').style.display = 'flex';
-        }
-
-        window.submitCategory = async function() {
-            const name = document.getElementById('inp-cat-name').value;
-            const fImg = document.getElementById('inp-cat-img').files[0];
-            if(!name) return alert("Name required");
-            if(!editingCatId && !fImg) return alert("Image required");
-
-            const btn = document.getElementById('btn-save-cat');
-            const oldTxt = btn.innerText; btn.innerText = "Uploading..."; btn.disabled = true;
-
-            try {
-                let finalUrl = editCatUrl;
-                if(fImg) finalUrl = await uploadToSupabase(fImg, 'images');
-                const payload = { name: name, imageURL: finalUrl };
-                if(editingCatId) await db.ref('categories/'+editingCatId).update(payload);
-                else await db.ref('categories').push(payload);
-                closeModal('cat-modal');
-            } catch(e) { alert("Error: "+e.message); }
-            finally { btn.innerText = oldTxt; btn.disabled = false; }
-        }
-
-        window.deleteCat = function(id) {
-            if(confirm("Delete category?")) db.ref('categories/'+id).remove();
-        }
-
-        // --- 8. USERS/SETTINGS ---
-        function fetchUsers() {
-            db.ref('users').on('value', snap => {
-                const data = snap.val(); const tb = document.getElementById('users-table-body'); tb.innerHTML = '';
-                let count = 0;
-                if(data) {
-                    count = Object.keys(data).length;
-                    Object.keys(data).forEach(k => {
-                        const u = data[k];
-                        tb.innerHTML += `<tr>
-                            <td><img src="${u.photo||'https://via.placeholder.com/40'}" style="width:30px; height:30px; border-radius:50%"></td>
-                            <td>${u.name||'Guest'}</td><td>${u.email||'-'}</td><td style="font-family:monospace; font-size:0.8rem">${k}</td>
-                        </tr>`;
-                    });
+            } else if (state.status === 'IDLE' || state.status === 'INIT') {
+                // Draw Idle Targeting Box
+                drawTargetBox(boxX, boxY, boxW, boxH, 'var(--accent-neutral)', false);
+                requestAnimationFrame(renderLoop);
+                
+            } else if (state.status === 'RESULT') {
+                // Persistent Result Render (No further requestAnimationFrame here)
+                if (state.scanResult.status === 'FAIL') {
+                    // Darken background
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+                    ctx.fillRect(0, 0, w, h);
+                    
+                    // Highlight the target area normally
+                    ctx.drawImage(video, boxX, boxY, boxW, boxH, boxX, boxY, boxW, boxH);
+                    
+                    // Draw red box around anomalies
+                    drawTargetBox(boxX, boxY, boxW, boxH, 'var(--accent-danger)', true);
+                    drawAnomalies(boxX, boxY, boxW, boxH);
+                } else {
+                    drawTargetBox(boxX, boxY, boxW, boxH, 'var(--accent-success)', false);
                 }
-                document.getElementById('stat-users').innerText = count;
-            });
-        }
-        function fetchSettings() {
-            db.ref('config').on('value', snap => {
-                const cfg = snap.val();
-                if(cfg) {
-                    document.getElementById('set-maintenance').checked = (cfg.maintenance === 'true');
-                    document.getElementById('set-greeting').value = cfg.greeting || '';
-                }
-            });
-        }
-        window.saveSettings = function() {
-            const maint = document.getElementById('set-maintenance').checked;
-            const greet = document.getElementById('set-greeting').value;
-            db.ref('config').update({ maintenance: maint ? 'true' : 'false', greeting: greet }, e => alert(e ? "Error" : "Saved"));
+            }
         }
 
-        // --- 9. HELPERS ---
-        function populateCatDatalist() {
-            const dl = document.getElementById('cat-datalist'); dl.innerHTML = '';
-            allCats.forEach(c => {
-                const opt = document.createElement('option'); opt.value = c.name; dl.appendChild(opt);
-            });
+        /**
+         * Extract Grayscale Intensities from the frame data for each grid block
+         */
+        function extractGridIntensities(imageData, width, height) {
+            const data = imageData.data;
+            const cellW = width / CONFIG.gridSize;
+            const cellH = height / CONFIG.gridSize;
+            
+            // Temporary accumulators for this frame
+            const cellSums = new Float64Array(CONFIG.gridSize * CONFIG.gridSize);
+            const cellCounts = new Uint32Array(CONFIG.gridSize * CONFIG.gridSize);
+
+            // Loop through all pixels in the target box
+            for (let y = 0; y < height; y++) {
+                const gridY = Math.floor(y / cellH);
+                if (gridY >= CONFIG.gridSize) continue;
+                
+                for (let x = 0; x < width; x++) {
+                    const gridX = Math.floor(x / cellW);
+                    if (gridX >= CONFIG.gridSize) continue;
+                    
+                    const index = (y * Math.floor(width) + x) * 4;
+                    const r = data[index];
+                    const g = data[index + 1];
+                    const b = data[index + 2];
+                    
+                    // Grayscale conversion (Luma)
+                    const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+                    
+                    const cellIndex = gridY * CONFIG.gridSize + gridX;
+                    cellSums[cellIndex] += gray;
+                    cellCounts[cellIndex]++;
+                }
+            }
+
+            // Average and store in time-series buffer
+            for (let i = 0; i < cellSums.length; i++) {
+                const avg = cellSums[i] / cellCounts[i];
+                state.timeSeriesData[i].push(avg);
+            }
         }
-        window.closeModal = function(id) { document.getElementById(id).style.display = 'none'; }
-        function clearInputs(type) {
-            if(type==='song') ['inp-name','inp-artist','inp-cat','inp-audio','inp-img'].forEach(i => document.getElementById(i).value='');
-            else ['inp-cat-name','inp-cat-img'].forEach(i => document.getElementById(i).value='');
+
+        /**
+         * Canvas Drawing Helpers
+         */
+        function drawTargetBox(x, y, w, h, color, glowing) {
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            
+            if (glowing) {
+                ctx.shadowColor = color;
+                ctx.shadowBlur = 15;
+            } else {
+                ctx.shadowBlur = 0;
+            }
+            
+            // Draw corner brackets
+            const cornerLength = 30;
+            ctx.beginPath();
+            // Top Left
+            ctx.moveTo(x, y + cornerLength);
+            ctx.lineTo(x, y);
+            ctx.lineTo(x + cornerLength, y);
+            // Top Right
+            ctx.moveTo(x + w - cornerLength, y);
+            ctx.lineTo(x + w, y);
+            ctx.lineTo(x + w, y + cornerLength);
+            // Bottom Right
+            ctx.moveTo(x + w, y + h - cornerLength);
+            ctx.lineTo(x + w, y + h);
+            ctx.lineTo(x + w - cornerLength, y + h);
+            // Bottom Left
+            ctx.moveTo(x + cornerLength, y + h);
+            ctx.lineTo(x, y + h);
+            ctx.lineTo(x, y + h - cornerLength);
+            ctx.stroke();
+            
+            // Reset shadow
+            ctx.shadowBlur = 0;
         }
+
+        function drawGridOverlay(x, y, w, h, color) {
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            
+            const stepX = w / CONFIG.gridSize;
+            const stepY = h / CONFIG.gridSize;
+            
+            for (let i = 1; i < CONFIG.gridSize; i++) {
+                // Vertical lines
+                ctx.moveTo(x + i * stepX, y);
+                ctx.lineTo(x + i * stepX, y + h);
+                // Horizontal lines
+                ctx.moveTo(x, y + i * stepY);
+                ctx.lineTo(x + w, y + i * stepY);
+            }
+            ctx.stroke();
+        }
+
+        function drawAnomalies(x, y, w, h) {
+            const cellW = w / CONFIG.gridSize;
+            const cellH = h / CONFIG.gridSize;
+            
+            ctx.strokeStyle = 'var(--accent-danger)';
+            ctx.lineWidth = 3;
+            ctx.shadowColor = 'var(--accent-danger)';
+            ctx.shadowBlur = 10;
+            ctx.fillStyle = 'rgba(231, 76, 60, 0.3)';
+            
+            for (const cell of state.failingCells) {
+                const gridX = cell.index % CONFIG.gridSize;
+                const gridY = Math.floor(cell.index / CONFIG.gridSize);
+                
+                const rectX = x + (gridX * cellW);
+                const rectY = y + (gridY * cellH);
+                
+                ctx.fillRect(rectX, rectY, cellW, cellH);
+                ctx.strokeRect(rectX, rectY, cellW, cellH);
+                
+                // Draw crosshair center
+                ctx.beginPath();
+                ctx.moveTo(rectX + cellW/2, rectY + cellH/2 - 5);
+                ctx.lineTo(rectX + cellW/2, rectY + cellH/2 + 5);
+                ctx.moveTo(rectX + cellW/2 - 5, rectY + cellH/2);
+                ctx.lineTo(rectX + cellW/2 + 5, rectY + cellH/2);
+                ctx.stroke();
+            }
+            ctx.shadowBlur = 0;
+        }
+
+        /**
+         * UI State Transitions
+         */
+        function startScan() {
+            if (state.status !== 'IDLE' && state.status !== 'RESULT') return;
+            
+            // Reset state
+            state.status = 'SCANNING';
+            sysStatus.innerText = 'SCAN IN PROGRESS...';
+            startBtn.disabled = true;
+            statusOverlay.style.display = 'none';
+            
+            state.frameCount = 0;
+            state.frameTimestamps = [];
+            state.scanStartTime = performance.now();
+            
+            // Initialize empty arrays for time series data
+            const numCells = CONFIG.gridSize * CONFIG.gridSize;
+            state.timeSeriesData = Array.from({ length: numCells }, () => []);
+            
+            // Re-ignite animation frame if coming from RESULT
+            requestAnimationFrame(renderLoop);
+        }
+
+        function finalizeScanUI(isAnomaly) {
+            state.status = 'RESULT';
+            sysStatus.innerText = isAnomaly ? 'ANOMALY DETECTED' : 'SYSTEM OPTIMAL';
+            sysStatus.style.color = isAnomaly ? 'var(--accent-danger)' : 'var(--accent-success)';
+            
+            statusOverlay.style.display = 'block';
+            statusOverlay.style.color = isAnomaly ? 'var(--accent-danger)' : 'var(--accent-success)';
+            statusOverlay.style.borderColor = isAnomaly ? 'var(--accent-danger)' : 'var(--accent-success)';
+            
+            if (isAnomaly) {
+                statusOverlay.innerHTML = `⚠️ CRITICAL ANOMALY DETECTED IN ISOLATED REGION<br>Peak Hz: ${state.scanResult.peakFrequency} | Mag: ${state.scanResult.maxAmplitude}`;
+            } else {
+                statusOverlay.innerHTML = `✓ STATUS: OPTIMAL<br>No anomalous vibrations detected.`;
+            }
+
+            startBtn.disabled = false;
+            startBtn.innerText = "Initiate New Scan";
+        }
+
+        /**
+         * Event Listeners & Bootstrap
+         */
+        startBtn.addEventListener('click', startScan);
+        window.addEventListener('load', initCamera);
 
     </script>
 </body>
